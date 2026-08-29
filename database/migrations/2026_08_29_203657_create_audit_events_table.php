@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('audit_events', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('corelation_id')->nullable()->index();
+            $table->uuid('correlation_id')->nullable()->index();
             $table->foreignId('user_id')->nullable()->index();
             $table->string('session_id')->nullable();
 
