@@ -12,6 +12,10 @@
       RCA_ACCOUNT=test  ──→   'account' => env('RCA_ACCOUNT')  ──→  config('rca.account')
          (secret,                  (singurul loc unde                 (peste tot,
           nu in Git)                e voie sa apara env())            fara secrete)
+
+    config:cache. In producție rulezi php artisan config:cache, care serializeaza tot config/ o data, la deploy. De
+    aia env() are voie sa apara doar in config/ — in orice alta parte a codului, dupa cache, env() intoarce null.
+    E capcana clasică în Laravel.
  */
 return [
     /*
