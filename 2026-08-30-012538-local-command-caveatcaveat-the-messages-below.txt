@@ -255,7 +255,7 @@
   de proiect, dacă emiterea poliței trebuie să fie o plată reală sau doar
   simulată în QA, sau ce date personale vrei să ții pe contul userului.
 
-✻ Cooked for 3m 30s · done 5:23 PM
+✻ Cooked for 3m 30s · done Saturday 5:23 PM
 
 ❯ Care ar fi cel mai usor stack de front-end de inteles?                        
 
@@ -1558,7 +1558,7 @@ code 0)
   audit_events), pe care le facem înaintea oricărui apel real, ca să avem unde
   loga de la primul request.
 
-✻ Cogitated for 8m 45s · done 6:04 PM
+✻ Cogitated for 8m 45s · done Saturday 6:04 PM
 
 ❯ /export                                                                       
   ⎿  Conversation copied to clipboard
@@ -1661,7 +1661,7 @@ code 0)
   infrastructura de trasabilitate, pe care o punem înainte de primul apel real
   ca să avem unde scrie de la bun început.
 
-✻ Cooked for 57s · done 11:15 PM
+✻ Cooked for 57s · done Saturday 11:15 PM
 
 ❯ gata                                                                          
 
@@ -2033,4 +2033,733 @@ code 0)
   provider_quotes, offers, policies), unde intră efectiv datele introduse în
   formular.
 
-✻ Cogitated for 2m 15s · done 11:30 PM
+✻ Cogitated for 2m 15s · done Saturday 11:30 PM
+
+❯ /export                                                                       
+  ⎿  Conversation exported to: /Users/razvandusa/PhpstormProjects/lih-asigurari-
+     rca/2026-08-29-233038-local-command-caveatcaveat-the-messages-below.txt
+
+❯ php artisan migrate                                                           
+                                                                                
+    php artisan tinker --execute="                                              
+                                                                                
+    \App\Models\AuditEvent::record('test.event', null, ['nota' => 'verificare   
+  pas 3']);                                                                     
+    \$e = \App\Models\AuditEvent::latest('id')->first();                        
+                                                                                
+    dump(\$e->event, \$e->payload, \$e->correlation_id,                         
+  \$e->created_at?->toDateTimeString());                                        
+    dump('coloane api_logs: '.implode(', ',                                     
+  \Illuminate\Support\Facades\Schema::getColumnListing('api_logs')));           
+    "                                                                           
+                                                                                
+     INFO  Running migrations.                                                  
+                                                                                
+    2026_08_29_203529_create_api_logs_table                                     
+  ............................................................ 4.20ms DONE      
+    2026_08_29_203657_create_audit_events_table                                 
+  ........................................................ 2.22ms DONE          
+                                                                                
+     Illuminate\Database\QueryException  SQLSTATE[HY000]: General error: 1      
+  table audit_events has no column named correlation_id (Connection: sqlite,    
+  Database: database/database.sqlite, SQL: insert into "audit_events"           
+  ("correlation_id", "user_id", "session_id", "event", "subject_type",          
+  "subject_id", "payload", "ip", "user_agent", "created_at") values             
+  (6004536d-940f-4209-9d67-04e3a63712db, ?, ?, test.event, ?, ?,                
+  {"nota":"verificare pas 3"}, 127.0.0.1, Symfony, 2026-08-29 21:27:21)).       
+
+⏺ Ciudat — migrarea a rulat, dar coloana lipsește. Verific ce e efectiv în tabel
+  și în fișier.
+  Read 1 file, ran 1 shell command (ctrl+o to expand)
+
+⏺ Găsit: în migrarea audit_events scrie corelation_id (cu un singur r) în loc de
+  correlation_id. Verific dacă e la fel și în api_logs.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Diagnostic clar: typo de o literă, doar în migrarea audit_events.
+
+  - api_logs — corect, 15 coloane, correlation_id ✅
+  - audit_events — linia 17 zice corelation_id (un singur r) ❌
+  - Modelul AuditEvent zice corect correlation_id → la INSERT cele două nu se
+    potrivesc și SQLite refuză
+
+  De asta eroarea a apărut abia la scriere, nu la migrare: Laravel nu compară
+  niciodată lista din #[Fillable] cu schema reală a tabelului. Migrarea a creat
+  fericită o coloană cu numele greșit, iar nepotrivirea a ieșit la iveală abia
+  la primul INSERT.
+
+  Fix
+
+  În database/migrations/2026_08_29_203657_create_audit_events_table.php, linia
+  17:
+
+  // din
+  $table->uuid('corelation_id')->nullable()->index();
+
+  // în
+  $table->uuid('correlation_id')->nullable()->index();
+
+  Apoi, pentru că tabelul există deja cu numele greșit, îl recreăm:
+
+  php artisan migrate:rollback --step=1
+  php artisan migrate
+
+  --step=1 dă înapoi doar ultima migrare (audit_events, fiind cea mai recentă
+  după timestamp), execută down() care face dropIfExists, iar migrate o rulează
+  din nou cu numele corect. api_logs nu e atins.
+
+  Apoi verificarea din nou
+
+  php artisan tinker --execute="
+  \App\Models\AuditEvent::record('test.event', null, ['nota' => 'verificare pas 
+  3']);
+  \$e = \App\Models\AuditEvent::latest('id')->first();
+  dump(\$e->event, \$e->payload, \$e->correlation_id, 
+  \$e->created_at?->toDateTimeString());
+  "
+
+  Și curățenia:
+
+  php artisan tinker
+  --execute="\App\Models\AuditEvent::where('event','test.event')->delete();"
+
+  ---
+
+  Ca observație pentru mai târziu: migrate:rollback merge acum pentru că suntem
+  la început și nu există date reale. Odată ce ai polițe emise în baza de date,
+  regula devine „nu modifici o migrare care a rulat deja" — scrii o migrare nouă
+  care corectează (renameColumn). Diferența contează doar când baza are ceva de
+  pierdut.
+
+✻ Brewed for 39s · done 12:28 AM
+
+❯ ok hai la pasul urmator                                                       
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Corect, correlation_id există și tabelul e curat.
+
+  Înainte de Pasul 4, verific două atribute noi din Laravel 13 pe care vreau să
+  le folosim:
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Verificat: #[RouteKey('uuid')] e suportat nativ în Laravel 13
+  (Model::getRouteKeyName() îl citește). Îl folosim.
+
+  Pasul 4 — Tabelele de business
+
+  Ce facem și de ce
+
+  Patru tabele care urmăresc drumul unei cereri prin sistem:
+
+  quote_requests          ce a completat omul în formular   (1 rând / click pe
+  „Calculează")
+     └─ provider_quotes   ce a răspuns fiecare asigurător   (11 rânduri)
+          └─ offers       ofertele efective primite          (0-1 rânduri /
+  asigurător)
+               └─ policies   polița emisă dintr-o ofertă     (0-1 rânduri /
+  ofertă)
+
+  Coloana cea mai importantă din tot pasul e quote_requests.input — un JSON cu
+  tot ce a introdus utilizatorul. Se scrie înainte de a apela vreun asigurător,
+  deci datele rămân salvate chiar dacă toate cele 11 apeluri eșuează. Asta e
+  literalmente cerința ta „trasabilitate la tot ce se introduce în Web".
+
+  Ordinea migrărilor contează — constrained() cere ca tabelul-țintă să existe
+  deja. Generează-le în ordinea de mai jos, ca timestamp-urile din numele
+  fișierelor să fie crescătoare.
+
+  ---
+
+  Fișierul 1 — quote_requests
+
+  php artisan make:migration create_quote_requests_table
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('quote_requests', function (Blueprint $table) {
+              $table->id();
+
+              // Identificatorul folosit in URL-uri (/oferta/{uuid}), ca sa nu 
+  expunem id-uri secventiale.
+              $table->uuid('uuid')->unique();
+
+              // Aceeasi valoare ca in api_logs si audit_events pentru aceasta 
+  actiune.
+              $table->uuid('correlation_id')->index();
+
+              // Nullable: se pot cere oferte si fara cont.
+              $table->foreignId('user_id')->nullable()->index();
+
+              // INIMA TRASABILITATII: tot ce a completat utilizatorul, asa cum 
+  a trecut de validare.
+              // Se scrie inainte de orice apel la asiguratori.
+              $table->json('input');
+
+              $table->string('status')->default('pending')->index(); // pending 
+  | completed | failed
+
+              // Copii ale catorva campuri din 'input', ca lista din /istoric sa
+  nu
+              // desfaca JSON-ul pentru fiecare rand afisat.
+              $table->string('license_plate')->nullable()->index();
+              $table->string('policyholder_name')->nullable();
+              $table->date('start_date')->nullable();
+
+              $table->string('ip', 45)->nullable();
+              $table->text('user_agent')->nullable();
+              $table->string('session_id')->nullable();
+
+              $table->timestamps();
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('quote_requests');
+      }
+  };
+
+  ---
+
+  Fișierul 2 — provider_quotes
+
+  php artisan make:migration create_provider_quotes_table
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('provider_quotes', function (Blueprint $table) {
+              $table->id();
+
+              // Aici cheia straina e reala: un raspuns fara cererea lui nu 
+  inseamna nimic.
+
+  $table->foreignId('quote_request_id')->constrained()->cascadeOnDelete();
+
+              $table->string('provider')->index();
+
+              $table->string('status'); // ok | error
+              $table->unsignedSmallInteger('http_status')->nullable();
+              $table->unsignedInteger('duration_ms')->nullable();
+              $table->text('error_message')->nullable();
+
+              $table->unsignedTinyInteger('offers_count')->default(0);
+
+              $table->timestamps();
+
+              // Un singur rand per asigurator per cerere.
+              $table->unique(['quote_request_id', 'provider']);
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('provider_quotes');
+      }
+  };
+
+  ---
+
+  Fișierul 3 — offers
+
+  php artisan make:migration create_offers_table
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('offers', function (Blueprint $table) {
+              $table->id();
+
+
+  $table->foreignId('provider_quote_id')->constrained()->cascadeOnDelete();
+
+              // Duplicat fata de provider_quotes.provider, dar scuteste un join
+              // la fiecare afisare si face inspectia cu sqlite3 lizibila.
+              $table->string('provider')->index();
+
+              // 'offerId' de la API. Cu el cerem polita si PDF-ul, deci are 
+  index.
+              $table->unsignedBigInteger('api_offer_id')->index();
+              $table->string('provider_offer_code')->nullable();
+
+              // decimal, NU float: banii nu se tin niciodata in virgula mobila.
+              $table->decimal('premium_amount', 12, 2);
+              $table->decimal('premium_amount_net', 12, 2)->nullable();
+              $table->string('currency', 3)->default('RON');
+
+              $table->date('start_date')->nullable();
+              $table->date('end_date')->nullable();
+
+              $table->decimal('reference_rate', 12, 2)->nullable();
+              $table->string('bonus_malus_class', 5)->nullable();
+
+              $table->decimal('commission_value', 12, 2)->nullable();
+              $table->decimal('commission_percent', 5, 2)->nullable();
+
+              $table->json('direct_compensation')->nullable();
+              $table->json('installments')->nullable();
+
+              $table->text('green_card_exclusions')->nullable();
+              $table->text('notes')->nullable();
+              $table->date('offer_expiry_date')->nullable();
+
+              // Link-uri catre documentele asiguratorului (pot fi foarte 
+  lungi).
+              $table->text('pid')->nullable();
+              $table->text('toc')->nullable();
+              $table->text('payment_link')->nullable();
+
+              // Se completeaza in Pasul 18, cand descarcam PDF-ul.
+              $table->string('pdf_path')->nullable();
+
+              // Oferta exact cum a venit de la API, fara nicio prelucrare.
+              $table->json('raw');
+
+              $table->timestamps();
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('offers');
+      }
+  };
+
+  ---
+
+  Fișierul 4 — policies
+
+  php artisan make:migration create_policies_table
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('policies', function (Blueprint $table) {
+              $table->id();
+
+              $table->foreignId('offer_id')->constrained()->cascadeOnDelete();
+              $table->foreignId('user_id')->nullable()->index();
+
+              $table->string('provider')->index();
+
+              $table->unsignedBigInteger('api_policy_id')->index();
+
+              // 'number' e numeric in API, dar il tinem string: nu facem 
+  aritmetica
+              // pe el si asa nu pierdem eventualele zerouri din fata.
+              $table->string('series')->nullable();
+              $table->string('number')->nullable();
+
+              $table->decimal('premium_amount', 12, 2)->nullable();
+              $table->string('currency', 3)->default('RON');
+              $table->date('start_date')->nullable();
+              $table->date('end_date')->nullable();
+
+              // Obiectul 'payment' trimis la emitere - dovada a ce am declarat.
+              $table->json('payment')->nullable();
+              $table->json('installments')->nullable();
+
+              $table->string('pdf_path')->nullable();
+              $table->json('raw');
+
+              $table->timestamps();
+
+              $table->index(['series', 'number']);
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('policies');
+      }
+  };
+
+  ---
+
+  Fișierul 5 — app/Models/Concerns/HasProviderLabel.php
+
+  Creează directorul app/Models/Concerns/:
+
+  <?php
+
+  namespace App\Models\Concerns;
+
+  trait HasProviderLabel
+  {
+      /** Numele afisat al asiguratorului, luat din config/rca.php. */
+      public function providerLabel(): string
+      {
+          return config("rca.providers.{$this->provider}.label",
+  $this->provider);
+      }
+  }
+
+  ---
+
+  Fișierul 6 — app/Models/QuoteRequest.php
+
+  php artisan make:model QuoteRequest
+
+  <?php
+
+  namespace App\Models;
+
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Attributes\RouteKey;
+  use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\BelongsTo;
+  use Illuminate\Database\Eloquent\Relations\HasMany;
+  use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+  use Illuminate\Support\Str;
+
+  #[Fillable([
+      'uuid',
+      'correlation_id',
+      'user_id',
+      'input',
+      'status',
+      'license_plate',
+      'policyholder_name',
+      'start_date',
+      'ip',
+      'user_agent',
+      'session_id',
+  ])]
+  #[RouteKey('uuid')]
+  class QuoteRequest extends Model
+  {
+      protected static function booted(): void
+      {
+          static::creating(function (self $quoteRequest) {
+              $quoteRequest->uuid ??= (string) Str::uuid();
+          });
+      }
+
+      protected function casts(): array
+      {
+          return [
+              'input'      => 'array',
+              'start_date' => 'date',
+          ];
+      }
+
+      public function user(): BelongsTo
+      {
+          return $this->belongsTo(User::class);
+      }
+
+      public function providerQuotes(): HasMany
+      {
+          return $this->hasMany(ProviderQuote::class);
+      }
+
+      /** Toate ofertele cererii, indiferent de asigurator. */
+      public function offers(): HasManyThrough
+      {
+          return $this->hasManyThrough(Offer::class, ProviderQuote::class);
+      }
+
+      /** Apelurile HTTP facute pentru aceasta cerere. */
+      public function apiLogs(): HasMany
+      {
+          return $this->hasMany(ApiLog::class);
+      }
+  }
+
+  ---
+
+  Fișierul 7 — app/Models/ProviderQuote.php
+
+  php artisan make:model ProviderQuote
+
+  <?php
+
+  namespace App\Models;
+
+  use App\Models\Concerns\HasProviderLabel;
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\BelongsTo;
+  use Illuminate\Database\Eloquent\Relations\HasMany;
+
+  #[Fillable([
+      'quote_request_id',
+      'provider',
+      'status',
+      'http_status',
+      'duration_ms',
+      'error_message',
+      'offers_count',
+  ])]
+  class ProviderQuote extends Model
+  {
+      use HasProviderLabel;
+
+      public function quoteRequest(): BelongsTo
+      {
+          return $this->belongsTo(QuoteRequest::class);
+      }
+
+      public function offers(): HasMany
+      {
+          return $this->hasMany(Offer::class);
+      }
+
+      public function succeeded(): bool
+      {
+          return $this->status === 'ok';
+      }
+
+      /** Asiguratorii despre care stim ca nu raspund in QA (ex. DallBogg). */
+      public function failureIsExpected(): bool
+      {
+          return (bool) config("rca.providers.{$this->provider}.expect_failure",
+  false);
+      }
+  }
+
+  ---
+
+  Fișierul 8 — app/Models/Offer.php
+
+  php artisan make:model Offer
+
+  <?php
+
+  namespace App\Models;
+
+  use App\Models\Concerns\HasProviderLabel;
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\BelongsTo;
+  use Illuminate\Database\Eloquent\Relations\HasOne;
+
+  #[Fillable([
+      'provider_quote_id',
+      'provider',
+      'api_offer_id',
+      'provider_offer_code',
+      'premium_amount',
+      'premium_amount_net',
+      'currency',
+      'start_date',
+      'end_date',
+      'reference_rate',
+      'bonus_malus_class',
+      'commission_value',
+      'commission_percent',
+      'direct_compensation',
+      'installments',
+      'green_card_exclusions',
+      'notes',
+      'offer_expiry_date',
+      'pid',
+      'toc',
+      'payment_link',
+      'pdf_path',
+      'raw',
+  ])]
+  class Offer extends Model
+  {
+      use HasProviderLabel;
+
+      protected function casts(): array
+      {
+          return [
+              'premium_amount'      => 'decimal:2',
+              'premium_amount_net'  => 'decimal:2',
+              'reference_rate'      => 'decimal:2',
+              'commission_value'    => 'decimal:2',
+              'commission_percent'  => 'decimal:2',
+              'start_date'          => 'date',
+              'end_date'            => 'date',
+              'offer_expiry_date'   => 'date',
+              'direct_compensation' => 'array',
+              'installments'        => 'array',
+              'raw'                 => 'array',
+          ];
+      }
+
+      public function providerQuote(): BelongsTo
+      {
+          return $this->belongsTo(ProviderQuote::class);
+      }
+
+      public function policy(): HasOne
+      {
+          return $this->hasOne(Policy::class);
+      }
+  }
+
+  ---
+
+  Fișierul 9 — app/Models/Policy.php
+
+  php artisan make:model Policy
+
+  <?php
+
+  namespace App\Models;
+
+  use App\Models\Concerns\HasProviderLabel;
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+  #[Fillable([
+      'offer_id',
+      'user_id',
+      'provider',
+      'api_policy_id',
+      'series',
+      'number',
+      'premium_amount',
+      'currency',
+      'start_date',
+      'end_date',
+      'payment',
+      'installments',
+      'pdf_path',
+      'raw',
+  ])]
+  class Policy extends Model
+  {
+      use HasProviderLabel;
+
+      protected function casts(): array
+      {
+          return [
+              'premium_amount' => 'decimal:2',
+              'start_date'     => 'date',
+              'end_date'       => 'date',
+              'payment'        => 'array',
+              'installments'   => 'array',
+              'raw'            => 'array',
+          ];
+      }
+
+      public function offer(): BelongsTo
+      {
+          return $this->belongsTo(Offer::class);
+      }
+
+      public function user(): BelongsTo
+      {
+          return $this->belongsTo(User::class);
+      }
+  }
+
+  ⚠️ Laravel pluralizează Policy în policies automat — nu e nevoie de #[Table].
+
+  ---
+
+  Explicația pe bucăți
+
+  Aici cheile străine sunt reale, spre deosebire de Pasul 3. În api_logs am
+  refuzat ->constrained(); aici îl folosesc peste tot, cu cascadeOnDelete().
+  Diferența e de natură: un log e o mărturie independentă despre trecut, deci
+  trebuie să supraviețuiască ștergerii subiectului. O ofertă fără cererea care a
+  produs-o e un rând orfan, fără sens — n-ai ce face cu el. Regula:
+  constrângeri pe datele de business, zero constrângeri pe datele de audit.
+
+  uuid separat de id. Cheia primară rămâne id (întreg, rapid la join-uri), dar
+  în URL apare uuid. Cu /oferta/57 oricine poate încerca /oferta/58 și enumera
+  cererile altora. Cu un UUID, nu. #[RouteKey('uuid')] face ca
+  Route::get('/oferta/{quoteRequest}') să caute automat după coloana uuid.
+
+  decimal(12,2) și castul 'decimal:2'. Float-ul binar nu poate reprezenta exact
+  2211.49; adunările încep să producă 2211.4899999. La bani se folosește
+  decimal. Castul garantează în plus că $offer->premium_amount întoarce mereu
+  "2211.49", nu 2211.4900000000002.
+
+  Coloana raw nu e opțională. API-ul poate adăuga oricând câmpuri noi (Omniasig
+  deja întoarce toc, pe care ceilalți nu-l au). Dacă păstrăm doar coloanele pe
+  care le-am anticipat, informația nouă se pierde definitiv. Cu raw, orice câmp
+  neprevăzut rămâne recuperabil fără să fi cerut oferta din nou.
+
+  hasManyThrough. Ofertele nu au coloană quote_request_id — ar fi fost
+  redundantă, pentru că relația se deduce prin provider_quotes.
+  hasManyThrough(Offer::class, ProviderQuote::class) îi spune lui Eloquent să
+  facă join-ul singur, deci $quoteRequest->offers funcționează ca o relație
+  normală.
+
+  De ce totuși duplic provider pe offers și policies. E o excepție conștientă de
+  la regula de mai sus. Un select provider, premium_amount from offers direct
+  în sqlite3 trebuie să fie lizibil când depanezi — iar ăsta e exact scenariul
+  pentru care construim trasabilitatea.
+
+  booted() + creating. Hook-ul rulează înainte de fiecare INSERT și completează
+  uuid dacă lipsește. Cu ??= rămâne posibil să dai tu un UUID anume (util în
+  teste), fără să-l suprascrie.
+
+  unique(['quote_request_id', 'provider']). Dacă un bug ar face pool-ul să scrie
+  de două ori pentru același asigurător, baza refuză. E o plasă de siguranță
+  ieftină.
+
+  ---
+
+  Cum verifici
+
+  php artisan migrate
+  php artisan tinker --execute="
+  \$qr = \App\Models\QuoteRequest::create([
+      'correlation_id' => \App\Support\Correlation::id(),
+      'input'          => ['vehicle' => ['licensePlate' => 'AR08WSX']],
+      'license_plate'  => 'AR08WSX',
+  ]);
+  \$pq = \$qr->providerQuotes()->create(['provider' => 'omniasig', 'status' => 
+  'ok', 'http_status' => 200, 'duration_ms' => 1842, 'offers_count' => 1]);
+  \$pq->offers()->create(['provider' => 'omniasig', 'api_offer_id' => 794310, 
+  'premium_amount' => 5121.53, 'raw' => ['x' => 1]]);
+
+  dump('uuid generat automat: '.\$qr->uuid);
+  dump('eticheta din config: '.\$pq->providerLabel());
+  dump('input citit ca array: 
+  '.\$qr->fresh()->input['vehicle']['licensePlate']);
+  dump('oferte prin hasManyThrough: '.\$qr->offers()->count());
+  dump('pret ca decimal: '.\$qr->offers()->first()->premium_amount);
+
+  \$qr->delete();
+  dump('dupa stergerea cererii - provider_quotes: 
+  '.\App\Models\ProviderQuote::count().', offers: '.\App\Models\Offer::count());
+  "
+
+  Trebuie să vezi un UUID, "Omniasig", "AR08WSX", 1, "5121.53", iar la final 0 
+  și 0 — dovada că cascadeOnDelete a curățat singur copiii.
+
+  Zi „gata" și trecem la Pasul 5 — tabelele de nomenclator (counties,
+  localities), ultimul pas de bază de date înainte să atingem efectiv API-ul.
+
+✻ Cooked for 2m 53s · done 12:34 AM
