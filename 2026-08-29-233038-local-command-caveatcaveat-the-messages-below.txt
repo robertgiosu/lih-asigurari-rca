@@ -1,0 +1,2036 @@
+ ▐▛███▛█   Claude Code v2.1.251
+▝▜██████▀  Opus 5 · Claude Pro
+  ▝▝ ▝▝    ~/PhpstormProjects/lih-asigurari-rca
+
+
+❯ /model                                                                        
+  ⎿  Set model to Opus 5 and saved as your default for new sessions with xhigh
+     effort
+
+❯ Pentru urmatorul proiect inainte sa adaugi orice modificare explica ce ai     
+  facut si de ce ai facut cum ai                                                
+  facut.  https://api.lifeishard.ro/docs/rca-api/rca_api_v1_4_1                 
+                                                                                
+  Aceste API uri vor sta la baza unei solutii WEB realizate cu ajutorul PHP     
+  Laravel, care reprezinta un calculator de RCA. Va avea front end, backend si  
+  baza de date SQLite.                                                          
+                                                                                
+  Obligatoriu: Trasabilitate la tot ce se introduce in Web                      
+                                                                                
+  Pas1: Se va apela POST /auth - cu datele account=test, password=test (POST    
+  https://rca-qa.api.lifeishard.ro/auth?account=test&password=test)             
+  Pas2: Se va aplea POST /offer (https://rca-qa.api.lifeishard.ro/offer) si se  
+  va intelege logica requestului                                                
+  Pas3: Se creaza aplicatia, in care se integreaza api urile (atentie:          
+  Credentialele de la PAS 1 se pun in .env nu in front end) cu campurile        
+  necesare de completat pt a se putea obtine cotatie (pret RCA).                
+  Pas4: Se integreaza GetPolicy - pt a converti un cod de oferta in polita      
+  Pas5: Get PDF, pentru a obtine pdf ul                                         
+  Pas6: Login/register pentru useri; cand un user este logat datele lui         
+  personale asociate contului i se vor autocompleta cand va cere o oferta de    
+  asigurare rca.                                                                
+                                                                                
+  ! Pas 1 si Pas 2 se fac in postman                                            
+                                                                                
+  Exemplu flow al request-urilor:                                               
+  POST https://rca-qa.api.lifeishard.ro/auth?account=test&password=test         
+  {                                                                             
+      "error": false,                                                           
+      "status": 200,                                                            
+      "data": {                                                                 
+          "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJMaWZlIGlzIE 
+  hhcmQiLCJpYXQiOjE3ODczMTIyNzkuMDU5NDIyLCJleHAiOjE3ODczNTU0NzkuMDU5NDIyLCJkYXR 
+  hIjp7ImFjY291bnRfaWQiOjEsImFjY291bnQiOiJ0ZXN0In19.PN98UliauMlcaZBqpVLFkBPpxxe 
+  VRazAgIYgQF3XKYo",                                                            
+          "expires_at": "2026-08-22 02:37:59",                                  
+          "refresh_token":                                                      
+  "640fca3b731e8eab27b2b9ab2ab692c0f2a84b7193a87e0f14c1453a4847db98"            
+      }                                                                         
+  }                                                                             
+                                                                                
+  Se ia tokenul dat prin /auth si acesta se va folosi la toate celelalte        
+  requesturi, punandu-se la header-ul request-ului, pentru cheia Token,         
+  valoarea tokenul primit anterior. Exemple de cerere oferta RCA:               
+  - Allianz Tiriac                                                              
+  POST https://rca-qa.api.lifeishard.ro/offer                                   
+                                                                                
+  Body:                                                                         
+  {                                                                             
+    "provider": {                                                               
+      "organization": {                                                         
+        "businessName": "allianz"                                               
+      },                                                                        
+      "authentication": {                                                       
+        "account": "",                                                          
+        "password": "",                                                         
+        "code": ""                                                              
+      }                                                                         
+    },                                                                          
+    "product": {                                                                
+      "motor": {                                                                
+        "startDate": "2026-09-15",                                              
+        "termTime": 12,                                                         
+        "installmentCount": 1                                                   
+      },                                                                        
+      "policyholder": {                                                         
+        "lastName": "Giosu",                                                    
+        "firstName": "Robert",                                                  
+        "isForeignPerson": false,                                               
+        "taxId": "5050518020094",                                               
+        "nationality": "RO",                                                    
+        "citizenship": "RO",                                                    
+        "gender": "m",                                                          
+                                                                                
+  ──── (1209 lines hidden) ──────────────────────────────────────────────────── 
+         "offerExpiryDate": "2026-09-09",                                       
+                  "pid": "https://llifeishardro.sharepoint.com/:b:/s/Publicreso 
+  rces/ERubM02CP6dBnq__VsKtoxUBhDk-5sBbV1cki7GUg76xXQ?e=VuYkxv"                 
+              }                                                                 
+          ]                                                                     
+      }                                                                         
+  }                                                                             
+                                                                                
+  - Eazy Insure                                                                 
+  POST https://rca-qa.api.lifeishard.ro/offer                                   
+                                                                                
+  Body:                                                                         
+  {                                                                             
+    "provider": {                                                               
+      "organization": {                                                         
+        "businessName": "eazy_insure"                                           
+      },                                                                        
+      "authentication": {                                                       
+        "account": "",                                                          
+        "password": "",                                                         
+        "code": ""                                                              
+      }                                                                         
+    },                                                                          
+    "product": {                                                                
+      "motor": {                                                                
+        "startDate": "2026-09-15",                                              
+        "termTime": 12,                                                         
+        "installmentCount": 1                                                   
+      },                                                                        
+      "policyholder": {                                                         
+        "lastName": "Giosu",                                                    
+        "firstName": "Robert",                                                  
+        "isForeignPerson": false,                                               
+        "taxId": "5050518020094",                                               
+        "nationality": "RO",                                                    
+        "citizenship": "RO",                                                    
+        "gender": "m",                                                          
+        "birthdate": "2005-05-18",                                              
+        "email": "robertgiosu@email.com",                                       
+        "mobileNumber": "0744444444",                                           
+        "identification": {                                                     
+          "idType": "CI",                                                       
+          "idNumber": "ZR088130",                                               
+          "issueAuthority": "SPCLEP Arad",                                      
+          "issueDate": "2023-05-23"                                             
+        },                                                                      
+        "drivingLicense": {                                                     
+          "issueDate": "2023-10-13"                                             
+        },                                                                      
+        "address": {                                                            
+          "country": "RO",                                                      
+          "county": "AR",                                                       
+          "city": "Arad",                                                       
+          "cityCode": 9271,                                                     
+          "street": "Coriolan Petreanu",                                        
+          "houseNumber": "38",                                                  
+          "postcode": "310151"                                                  
+        },                                                                      
+        "hasDisability": false,                                                 
+        "isRetired": false                                                      
+      },                                                                        
+      "vehicle": {                                                              
+        "driver": [                                                             
+          {                                                                     
+            "lastName": "Giosu",                                                
+            "firstName": "Robert",                                              
+            "taxId": "5050518020094",                                           
+            "identification": {                                                 
+              "idNumber": "ZR088130"                                            
+            },                                                                  
+            "mobileNumber": "0744444444"                                        
+          }                                                                     
+        ],                                                                      
+        "licensePlate": "AR08WSX",                                              
+        "registrationType": "registered",                                       
+        "vin": "WVWZZZ1KZ8W006165",                                             
+        "vehicleType": "M1",                                                    
+        "brand": "Volkswagen",                                                  
+        "model": "Golf",                                                        
+        "yearOfConstruction": 2008,                                             
+        "engineDisplacement": 1896,                                             
+        "enginePower": 77,                                                      
+        "totalWeight": 1920,                                                    
+        "seats": 5,                                                             
+        "fuelType": "diesel",                                                   
+        "firstRegistration": "2008-03-06",                                      
+        "usageType": "personal",                                                
+        "identification": {                                                     
+          "idNumber": "G205791"                                                 
+        },                                                                      
+        "currentMileage": 226000,                                               
+        "hasMobilityModifications": false,                                      
+        "isLeased": false,                                                      
+        "isNew": false                                                          
+      }                                                                         
+    }                                                                           
+  }                                                                             
+                                                                                
+  Response body:                                                                
+  [nu l-am mai salvat]                                                          
+                                                                                
+  Pentru DallBogg, nu va functiona sa ceri un offer, deci daca da eroare        
+  requestul de asigurare RCA pentru DallBogg, nu este nicio problema.           
+                                                                                
+
+⏺ I'll start by exploring the current state of the repository and the API
+  documentation.
+
+  Listed 1 directory, ran 1 shell command (ctrl+o to expand)
+
+⏺ PHP/Composer aren't installed yet. Let me explore the repo scaffold and fetch
+  the API documentation.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+⏺ Now let me read the API documentation.
+
+⏺ Fetch(https://api.lifeishard.ro/docs/rca-api/rca_api_v1_4_1)
+  ⎿  Received 926 bytes (301 Moved Permanently)
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Fetch(http://api.lifeishard.ro/docs/rca-api/rca_api_v1_4_1/)
+  ⎿  Received 97.6KB (200 OK)
+
+⏺ Let me dig deeper into provider-specific requirements and the locality/county
+  data.
+
+⏺ Fetch(http://api.lifeishard.ro/docs/rca-api/rca_api_v1_4_1/)
+  ⎿  Received 97.6KB (200 OK)
+
+⏺ Fetch(https://api.lifeishard.ro/rca-api)
+  ⎿  Received 594 bytes (301 Moved Permanently)
+
+⏺ Fetch(http://api.lifeishard.ro/rca-api/)
+  ⎿  Received 284.8KB (200 OK)
+
+⏺ Fetch(https://app.swaggerhub.com/apis-docs/Life-is-Hard3/nomenclator.api.lifei
+       shard.ro/)
+  ⎿  Received 0 bytes (404 Not Found)
+
+⏺ Found the raw OpenAPI spec. Let me pull the exact schemas from it.
+
+  Ran 7 shell commands (ctrl+o to expand)
+
+⏺ I now have a complete picture of the API. Key correction to note: the PDF
+  endpoints return JSON with base64-encoded files (data.files[].content), not
+  raw binary — and there are /nomenclature/county +
+  /nomenclature/locality/{county_code} endpoints that supply the mandatory
+  county / cityCode (SIRUTA) values.
+
+  Let me clarify a few decisions that materially change the design.
+
+⏺ User declined to answer questions
+  ⎿  · Cum vrei să funcționeze pasul de cotație — un singur asigurător pe 
+     request, sau comparație simultană? (Toți asigurătorii în paralel 
+     (Recomandat) / Un asigurător selectat)
+     · Ce stack de front-end preferi? (scaffold-ul are deja Vite + Tailwind 4, 
+     fără framework JS) (Blade + Alpine.js + Tailwind (Recomandat) / Livewire 3 
+     / Inertia + Vue/React)
+     · La Pas 4 (POST /policy) API-ul cere obligatoriu un obiect `payment` 
+     (method, amount, date, documentNumber). Cum îl completăm? (Formular de 
+     confirmare (Recomandat) / Auto-generat, un singur click)
+     · Pentru Pas 6 (login/register useri), ce abordare? (Auth scris manual, 
+     minimal (Recomandat) / Laravel Breeze)
+⏺ Am notat: toți asigurătorii în paralel pentru cotație.
+
+  Ce anume ai vrea să clarificăm înainte să răspunzi la restul? Spune-mi ce nu e
+  clar (sau ce context lipsește) din întrebările despre front-end, plată și
+  autentificarea userilor — de exemplu dacă ai deja o preferință de stack impusă
+  de proiect, dacă emiterea poliței trebuie să fie o plată reală sau doar
+  simulată în QA, sau ce date personale vrei să ții pe contul userului.
+
+✻ Cooked for 3m 30s · done 5:23 PM
+
+❯ Care ar fi cel mai usor stack de front-end de inteles?                        
+
+⏺ Cel mai ușor de înțeles e Blade + Tailwind (adică exact ce e deja în
+  scaffold), eventual cu foarte puțin Alpine.js. Motivul concret:
+
+  Blade e pur și simplu HTML cu {{ $variabila }} și @foreach în el. Nu există
+  stare pe client, nu există build de framework, nu există „de ce nu se
+  re-randează?". Fluxul e liniar și îl poți citi de sus în jos:
+
+  formular (Blade)  →  POST /oferta  →  Controller PHP  →  Http::pool() la 11
+  asigurători
+                                                         ↓
+                            pagina de rezultate (Blade)  ←  salvez în SQLite
+
+  Când ceva nu merge, te uiți în controller. Atât.
+
+  Livewire scrie mai puțin cod, dar adaugă un strat „magic": componenta se
+  re-randează singură prin request-uri AJAX invizibile. Când se strică, debug-ul
+  e mult mai greu pentru cineva care învață.
+
+  Inertia + Vue/React înseamnă practic două aplicații (PHP + SPA) și două seturi
+  de reguli. Cel mai puternic, cel mai greu.
+
+  Singura complicație reală la varianta Blade pură: cele 11 apeluri paralele
+  durează ~5–15 secunde, iar utilizatorul stă cu tab-ul alb până se încarcă
+  pagina de rezultate. Se rezolvă cu ~20 de linii de Alpine (un spinner +
+  fetch), fără să schimbi arhitectura — Blade rămâne Blade.
+
+  Acum, restul deciziilor:
+
+⏺ User answered Claude's questions:
+  ⎿  · Deci pentru front-end, cât JS acceptăm? (Blade + Tailwind în ambele 
+     cazuri) → Blade + Alpine minimal (Recomandat)
+     · La Pas 4 (POST /policy) API-ul cere obligatoriu un obiect `payment` 
+     (method, amount, date, documentNumber). Cum îl completăm? Nu e o plată 
+     reală — e doar declararea încasării către asigurător. → Auto-generat, un 
+     click
+     · Pentru Pas 6 (login/register useri), ce abordare? → Auth scris manual, 
+     minimal (Recomandat)
+     · PHP și Composer nu sunt instalate pe mașină (`php -v` → command not 
+     found). Fără ele nu pot rula migrări sau porni aplicația. → Instalează-le 
+     tu (Recomandat)
+
+⏺ Toate deciziile sunt luate. Scriu planul.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+  ⎿  User rejected Claude's plan:
+     ╭─────────────────────────────────────────────────────────────────────────╮
+     │ Calculator RCA — aplicație Laravel peste API-ul Life is Hard            │
+     │                                                                         │
+     │ Context                                                                 │
+     │                                                                         │
+     │ Repo-ul e un scaffold Laravel 13 gol (doar User, migrarea de users,     │
+     │ welcome.blade.php). Trebuie construită de la zero o aplicație web care: │
+     │                                                                         │
+     │ 1. se autentifică la https://rca-qa.api.lifeishard.ro (POST /auth, cont │
+     │    test/test),                                                          │
+     │ 2. cere cotații RCA (POST /offer) de la toți asigurătorii și le         │
+     │    afișează comparativ,                                                 │
+     │ 3. transformă o ofertă aleasă în poliță (POST /policy),                 │
+     │ 4. descarcă PDF-ul ofertei/poliței,                                     │
+     │ 5. are login/register propriu, iar datele personale ale userului logat  │
+     │    pre-populează formularul de ofertă.                                  │
+     │                                                                         │
+     │ Cerință obligatorie: trasabilitate la tot ce se introduce în Web. Asta  │
+     │ e tratată ca cerință de prim rang, nu ca logging accidental — vezi      │
+     │ secțiunea Trasabilitate.                                                │
+     │                                                                         │
+     │ Decizii confirmate cu utilizatorul                                      │
+     │                                                                         │
+     │ ┌───────────────┬────────────────────┬───────────────────────────────── │
+     │ ───┐                                                                    │
+     │ │    Decizie    │      Alegere       │               De ce              │
+     │   │                                                                     │
+     │ ├───────────────┼────────────────────┼───────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │               │ Toți asigurătorii  │ E comportamentul de „calculator  │
+     │   │                                                                     │
+     │ │ Cotație       │ în paralel         │ RCA"; Http::pool() face cele 11  │
+     │   │                                                                     │
+     │ │               │                    │ apeluri simultan                 │
+     │   │                                                                     │
+     │ ├───────────────┼────────────────────┼───────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │               │ Blade + Tailwind + │ Cel mai ușor de urmărit: flux    │
+     │   │                                                                     │
+     │ │ Front-end     │  Alpine minimal    │ liniar PHP. Alpine doar pentru   │
+     │   │                                                                     │
+     │ │               │                    │ spinner + dropdown localități    │
+     │   │                                                                     │
+     │ ├───────────────┼────────────────────┼───────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ payment la    │ Auto-generat, un   │ Nu e plată reală; se completează │
+     │   │                                                                     │
+     │ │ emitere       │ click              │ broker receipt + sumă din ofertă │
+     │ + │                                                                     │
+     │ │               │                    │  data de azi + număr generat     │
+     │   │                                                                     │
+     │ ├───────────────┼────────────────────┼───────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │               │ Scris manual,      │ 3 controllere peste Auth din     │
+     │   │                                                                     │
+     │ │ Auth useri    │ minimal            │ Laravel, fără dependențe noi,    │
+     │   │                                                                     │
+     │ │               │                    │ control total pe câmpurile RCA   │
+     │   │                                                                     │
+     │ ├───────────────┼────────────────────┼───────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ PHP/Composer  │ Le instalez eu     │ php -v → command not found;      │
+     │   │                                                                     │
+     │ │               │                    │ folosesc scriptul din CLAUDE.md  │
+     │   │                                                                     │
+     │ └───────────────┴────────────────────┴───────────────────────────────── │
+     │ ───┘                                                                    │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Ce am aflat citind API-ul (corecții față de presupunerile inițiale)     │
+     │                                                                         │
+     │ Am descărcat specificația OpenAPI oficială:                             │
+     │ https://api.lifeishard.ro/redocusaurus/rca-api.yaml. Trei lucruri       │
+     │ contrazic ce s-ar presupune din exemplele din Postman:                  │
+     │                                                                         │
+     │ 1. PDF-urile NU sunt binare. GET /offer/{id} și GET /policy/{id} întorc │
+     │    JSON cu data.files[], fiecare având {type, name, content} unde       │
+     │    content e base64. Deci se decodează în PHP și se salvează pe disc —  │
+     │    nu se face proxy la un stream binar.                                 │
+     │ 2. Există endpoint-uri de nomenclator pe același API, cu același token  │
+     │    — asta rezolvă problema cityCode:                                    │
+     │    - GET /nomenclature/county → [{county_code: "CJ", name: "CLUJ",      │
+     │      siruta: 127}]                                                      │
+     │    - GET /nomenclature/locality/{county_code} → [{nume: "CLUJ-NAPOCA",  │
+     │      cod_judet: "CJ", cod_siruta: 54984}]                               │
+     │    - GET /nomenclature/country → [{name, iso2, iso3}]                   │
+     │                                                                         │
+     │    address.county acceptă county_code, address.city acceptă nume,       │
+     │    address.cityCode acceptă cod_siruta. Fără astea formularul nu poate  │
+     │    produce un request valid, deci nomenclatorul e o precondiție, nu un  │
+     │    moft.                                                                │
+     │ 3. renewPolicy e opțional. În exemplele din task apare cu valori        │
+     │    evident dummy (XX/XX/XX / 123456789) la unii asigurători. Îl trimit  │
+     │    doar dacă utilizatorul completează efectiv seria + numărul poliței   │
+     │    anterioare — altfel îl omit din payload.                             │
+     │                                                                         │
+     │ Alte lucruri utile din spec:                                            │
+     │ - GET /vehicle?licensePlate=... întoarce marcă, model, VIN, capacitate, │
+     │   putere, masă, locuri, combustibil, an — se poate auto-completa        │
+     │   jumătate din formular (vezi Opțional).                                │
+     │ - Câmpuri obligatorii: Vehicle → registrationType, vin, vehicleType,    │
+     │   brand, model, yearOfConstruction, totalWeight, usageType; Person →    │
+     │   taxId, address; Address → county, city, cityCode, street; Motor →     │
+     │   startDate, termTime; Driver → lastName, firstName, taxId,             │
+     │   identification.idNumber.                                              │
+     │ - provider.authentication se trimite cu account/password/code goale —   │
+     │   în QA se folosesc credențialele implicite ale platformei.             │
+     │ - Header Content-Language: ro face mesajele de eroare să vină în        │
+     │   română. Îl trimit mereu.                                              │
+     │ - Documentația menționează restricție pe IP whitelist pentru ambele     │
+     │   medii → de verificat primul lucru (vezi Verificare).                  │
+     │                                                                         │
+     │ Particularități per asigurător (product.additionalData)                 │
+     │                                                                         │
+     │ Sunt reale și diferite; le țin declarativ în config/rca.php, nu în      │
+     │ if-uri prin cod:                                                        │
+     │                                                                         │
+     │ ┌─────────────────────┬──────────────────────────────────────────────── │
+     │ ───┐                                                                    │
+     │ │     Asigurător      │              additionalData necesar             │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ generali            │ product.vehicle.expirationDatePti               │
+     │ (obligatoriu),  │                                                       │
+     │ │                     │ bonusMalusPrevClass, noYoungDriver              │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │                     │ product.bonusMalusPrevClass,                    │
+     │   │                                                                     │
+     │ │ omniasig            │ bonusMalusCurrentClass,                         │
+     │   │                                                                     │
+     │ │                     │ product.vehicle.expirationDatePti               │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ grawe               │ product.bonusMalusPrevClass/CurrentClass;       │
+     │ adresa  │                                                               │
+     │ │                     │ cu floor                                        │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ groupama,           │                                                 │
+     │   │                                                                     │
+     │ │ hellas_autonom,     │ product.vehicle.expirationDatePti               │
+     │   │                                                                     │
+     │ │ hellas_nextins      │                                                 │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ axeria              │ fără additionalData, dar address.houseNumber e  │
+     │   │                                                                     │
+     │ │                     │ obligatoriu                                     │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ allianz, asirom,    │ nimic special                                   │
+     │   │                                                                     │
+     │ │ eazy_insure         │                                                 │
+     │   │                                                                     │
+     │ ├─────────────────────┼──────────────────────────────────────────────── │
+     │ ───┤                                                                    │
+     │ │ dallbogg            │ se apelează, dar eroarea e așteptată și tratată │
+     │   │                                                                     │
+     │ │                     │ ca „indisponibil"                               │
+     │   │                                                                     │
+     │ └─────────────────────┴──────────────────────────────────────────────── │
+     │ ───┘                                                                    │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Arhitectură                                                             │
+     │                                                                         │
+     │ 1. Configurare (credențialele NU ajung în front-end)                    │
+     │                                                                         │
+     │ .env / .env.example:                                                    │
+     │ RCA_BASE_URL=https://rca-qa.api.lifeishard.ro                           │
+     │ RCA_ACCOUNT=test                                                        │
+     │ RCA_PASSWORD=test                                                       │
+     │ RCA_TIMEOUT=30                                                          │
+     │ RCA_CONNECT_TIMEOUT=10                                                  │
+     │                                                                         │
+     │ config/rca.php — nou: base url, credențiale citite din env(), timeouts, │
+     │ și lista de provideri cu slug, label (nume afișat), additionalData      │
+     │ necesar. Nicio valoare din astea nu ajunge vreodată în Blade sau în JS; │
+     │ front-end-ul vorbește doar cu rutele interne ale aplicației.            │
+     │                                                                         │
+     │ 2. Stratul de servicii — app/Services/Rca/                              │
+     │                                                                         │
+     │ Separat de controllere ca să fie testabil cu Http::fake() și ca logica  │
+     │ de payload să nu se amestece cu HTTP-ul.                                │
+     │                                                                         │
+     │ - RcaTokenManager — obține și cachează JWT-ul.                          │
+     │   Cache::remember('rca.token', ...) cu TTL derivat din expires_at minus │
+     │   5 min marjă. Reînnoire cu PATCH /auth + refresh_token; dacă și aia    │
+     │   eșuează, POST /auth din nou. Tokenul se ia o singură dată, înainte de │
+     │   pool — nu de 11 ori.                                                  │
+     │ - RcaClient — wrapper subțire peste Http: base URL, header Token,       │
+     │   Content-Language: ro, timeouts, și scrie o linie în api_logs pentru   │
+     │   fiecare apel. Toate celelalte servicii trec prin el.                  │
+     │ - OfferPayloadBuilder — transformă datele validate din formular în      │
+     │   JSON-ul imbricat al API-ului (provider / product.motor / policyholder │
+     │   / vehicle / additionalData), aplicând particularitățile per           │
+     │   asigurător din config/rca.php. Aici stă toată „traducerea"; e clasa   │
+     │   cea mai importantă de testat unitar.                                  │
+     │ - OfferService — construiește payload-ul pentru fiecare provider,       │
+     │   rulează Http::pool(), normalizează răspunsurile (succes cu oferte /   │
+     │   eroare cu mesaj) și persistă totul.                                   │
+     │ - PolicyService — POST /policy cu payment auto-generat; salvează        │
+     │   polița.                                                               │
+     │ - PdfService — GET /offer/{id} / GET /policy/{id}, decodează base64 din │
+     │   data.files[].content, salvează în storage/app/private/rca/ și         │
+     │   întoarce calea.                                                       │
+     │ - NomenclatureService — citește județe/localități din tabelele locale,  │
+     │   nu din API la fiecare request.                                        │
+     │                                                                         │
+     │ Detaliu tehnic pe Http::pool(): excepțiile dintr-un pool nu se aruncă — │
+     │ vin ca obiecte ConnectionException în array-ul de rezultate, deci       │
+     │ fiecare element trebuie verificat cu instanceof. Pentru durata          │
+     │ per-provider folosesc opțiunea Guzzle on_stats pe fiecare request din   │
+     │ pool (durata totală a pool-ului nu spune nimic despre cine a fost       │
+     │ lent).                                                                  │
+     │                                                                         │
+     │ 3. Baza de date (SQLite) — trasabilitate                                │
+     │                                                                         │
+     │ Migrări noi. Modelele urmează stilul Laravel 13 din scaffold (atribute  │
+     │ #[Fillable([...])], nu proprietăți).                                    │
+     │                                                                         │
+     │ Date de business:                                                       │
+     │ - profiles — datele personale ale userului: user_id, nume/prenume,      │
+     │   tax_id (CNP), naștere, gen, cetățenie, telefon, CI (id_type,          │
+     │   id_number, issue_authority, issue_date), driving_license_issue_date,  │
+     │   adresă completă (county, city, city_code, street, house_number,       │
+     │   building, staircase, apartment, floor, postcode), has_disability,     │
+     │   is_retired. tax_id și id_number cu cast encrypted — sunt date         │
+     │   personale sensibile, iar costul e o linie de cod.                     │
+     │ - quote_requests — o linie per apăsare pe „Calculează". uuid public,    │
+     │   user_id (nullable — merge și fără cont), input (JSON cu tot ce s-a    │
+     │   completat), status, ip, user_agent, session_id. Se scrie înainte de   │
+     │   apelurile la API, deci input-ul rămâne salvat chiar dacă totul        │
+     │   eșuează — asta e miezul cerinței de trasabilitate.                    │
+     │ - provider_quotes — o linie per asigurător interogat: quote_request_id, │
+     │   provider, status (ok/error/timeout), http_status, duration_ms,        │
+     │   error_message.                                                        │
+     │ - offers — o linie per ofertă returnată: offer_id (de la API),          │
+     │   provider_offer_code, premium_amount, premium_amount_net, currency,    │
+     │   start_date, end_date, reference_rate, bonus_malus_class,              │
+     │   commission_value/percent, direct_compensation (JSON), installments    │
+     │   (JSON), green_card_exclusions, notes, offer_expiry_date, pid, toc,    │
+     │   raw (JSON).                                                           │
+     │ - policies — offer_id local, policy_id API, series, number, sume, date, │
+     │   payment (JSON), installments (JSON), pdf_path, raw.                   │
+     │ - counties, localities — nomenclatorul sincronizat local.               │
+     │                                                                         │
+     │ Trasabilitate propriu-zisă:                                             │
+     │ - api_logs — o linie per apel HTTP ieșit: correlation_id, user_id,      │
+     │   quote_request_id, method, url, request_headers, request_body,         │
+     │   response_status, response_body, duration_ms, error, ip, created_at.   │
+     │   Tokenul JWT și parolele se maschează la scriere.                      │
+     │ - audit_events — o linie per acțiune a utilizatorului în Web: user_id,  │
+     │   session_id, ip, user_agent, event (user.registered, user.login,       │
+     │   user.logout, profile.updated, quote.requested, policy.issued,         │
+     │   pdf.downloaded), subject_type/subject_id, payload, created_at.        │
+     │                                                                         │
+     │ Un correlation_id (UUID) generat per request web leagă rândul din       │
+     │ quote_requests, rândurile din api_logs și evenimentele din audit_events │
+     │ — se poate reconstitui exact ce a introdus un user și ce a plecat spre  │
+     │ asigurători.                                                            │
+     │                                                                         │
+     │ 4. Rute și UI                                                           │
+     │                                                                         │
+     │ Fără routes/api.php (scaffold-ul Laravel 13 nu îl are). Endpoint-urile  │
+     │ JSON pentru Alpine stau tot în routes/web.php, ca să beneficieze de     │
+     │ sesiune + CSRF fără configurare suplimentară.                           │
+     │                                                                         │
+     │ GET    /                          → redirect la /oferta                 │
+     │ GET    /oferta                    → formularul (pre-completat din       │
+     │ profil dacă e logat)                                                    │
+     │ POST   /oferta                    → JSON; rulează pool-ul, salvează,    │
+     │ întoarce ofertele                                                       │
+     │ GET    /oferta/{uuid}             → pagina de rezultate (persistată,    │
+     │ re-vizitabilă)                                                          │
+     │ GET    /oferta/{uuid}/pdf/{offer} → PDF-ul ofertei                      │
+     │ POST   /oferta/{uuid}/emite/{offer} → POST /policy → redirect la poliță │
+     │ GET    /polita/{policy}           → detaliu poliță                      │
+     │ GET    /polita/{policy}/pdf       → PDF-ul poliței                      │
+     │ GET    /localitati/{county}       → JSON pentru dropdown-ul de          │
+     │ localități                                                              │
+     │ GET    /istoric                   → lista cererilor userului            │
+     │ GET    /istoric/{uuid}            → detaliu + traseul complet de        │
+     │ apeluri API                                                             │
+     │ GET|POST /register, /login        → auth                                │
+     │ POST   /logout                                                          │
+     │ GET|PATCH /profil                 → datele personale                    │
+     │                                                                         │
+     │ Formularul (resources/views/oferta/form.blade.php) — trei secțiuni pe o │
+     │ pagină, nu wizard (mai simplu de urmărit):                              │
+     │ - Poliță: dată start, durată (1–12 luni), număr rate (1/2/4/12),        │
+     │   opțional seria+numărul poliței anterioare.                            │
+     │ - Asigurat: nume, prenume, CNP, data nașterii, gen, email, telefon, CI  │
+     │   (tip/serie-număr/emitent/dată), data permisului, adresă (județ →      │
+     │   localitate ca select dependent, stradă, număr, etaj, cod poștal),     │
+     │   dizabilitate, pensionar.                                              │
+     │ - Vehicul: număr înmatriculare, tip înmatriculare, VIN, categorie,      │
+     │   marcă, model, an, cilindree, putere, masă, locuri, combustibil, prima │
+     │   înmatriculare, utilizare, serie CIV, km, data expirării ITP,          │
+     │   leasing/nou/modificări mobilitate.                                    │
+     │ - Checkbox „Șoferul este aceeași persoană cu asiguratul" (bifat         │
+     │   implicit) — populează vehicle.driver[0] din datele asiguratului.      │
+     │                                                                         │
+     │ Validare — StoreQuoteRequest (FormRequest) cu regulile din spec         │
+     │ (enum-uri pentru vehicleType, fuelType, usageType, registrationType,    │
+     │ idType, gender) plus o regulă custom Cnp care verifică cifra de control │
+     │ a CNP-ului românesc. Motivul: prinde greșelile local, înainte să        │
+     │ irosim 11 apeluri către asigurători.                                    │
+     │                                                                         │
+     │ Pagina de rezultate — tabel sortat crescător după preț, cu preț, preț   │
+     │ net, clasa bonus-malus, comision, decontare directă, excluderi carte    │
+     │ verde, note, link PID/TOC, buton „Descarcă oferta PDF" și „Emite        │
+     │ polița". Asigurătorii care au eșuat apar la final ca „indisponibil:     │
+     │ <mesaj>" — inclusiv DallBogg, care e așteptat să eșueze.                │
+     │                                                                         │
+     │ Alpine — strict două lucruri: (1) fetch la POST /oferta cu spinner și   │
+     │ afișare progresivă, (2) reîncărcarea select-ului de localități la       │
+     │ schimbarea județului. Restul e Blade.                                   │
+     │                                                                         │
+     │ 5. Comandă artisan                                                      │
+     │                                                                         │
+     │ php artisan rca:sync-nomenclature — apelează GET /nomenclature/county,  │
+     │ apoi GET /nomenclature/locality/{code} pentru fiecare județ, și umple   │
+     │ counties / localities. ~43 de apeluri, o singură dată. Alternativa      │
+     │ (apel la API la fiecare schimbare de județ) ar fi lentă și ar polua     │
+     │ log-ul de trasabilitate cu zgomot.                                      │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Pași de implementare                                                    │
+     │                                                                         │
+     │ 0. Instalare PHP 8.5 + Composer cu scriptul din CLAUDE.md, apoi         │
+     │    composer install, .env din .env.example, php artisan key:generate,   │
+     │    touch database/database.sqlite, npm install.                         │
+     │ 1. Verificare conectivitate — curl -X POST                              │
+     │    'https://rca-qa.api.lifeishard.ro/auth?account=test&password=test'.  │
+     │    Dacă IP-ul nu e whitelisted, aici se oprește totul; de aceea e       │
+     │    pasul 1.                                                             │
+     │ 2. config/rca.php + variabilele de .env.                                │
+     │ 3. Migrări + modele (traceability + business + nomenclator).            │
+     │ 4. RcaTokenManager, RcaClient (cu scrierea în api_logs), test cu        │
+     │    Http::fake().                                                        │
+     │ 5. NomenclatureService + comanda rca:sync-nomenclature; rulare,         │
+     │    verificare că sunt ~42 județe și ~13k localități.                    │
+     │ 6. OfferPayloadBuilder + teste unitare care reproduc exact              │
+     │    payload-urile din exemplele Allianz / Generali / Omniasig date în    │
+     │    task.                                                                │
+     │ 7. OfferService cu Http::pool() + persistare în quote_requests /        │
+     │    provider_quotes / offers.                                            │
+     │ 8. Layout Blade + Tailwind, formularul, StoreQuoteRequest, regula Cnp,  │
+     │    pagina de rezultate, Alpine.                                         │
+     │ 9. PolicyService (emitere cu payment auto-generat) + pagina de poliță.  │
+     │ 10. PdfService (decodare base64, salvare, download) pentru ofertă și    │
+     │     poliță.                                                             │
+     │ 11. Auth (register/login/logout) + profiles + pre-completarea           │
+     │     formularului din profil.                                            │
+     │ 12. audit_events pe toate acțiunile + paginile /istoric și              │
+     │     /istoric/{uuid} care fac trasabilitatea vizibilă, nu doar stocată.  │
+     │ 13. README.md cu instrucțiuni de rulare și explicația fluxului.         │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Fișiere principale                                                      │
+     │                                                                         │
+     │ Noi: config/rca.php;                                                    │
+     │ app/Services/Rca/{RcaClient,RcaTokenManager,OfferPayloadBuilder,OfferSe │
+     │ rvice,PolicyService,PdfService,NomenclatureService}.php; app/Http/Contr │
+     │ ollers/{QuoteController,PolicyController,ProfileController,Auth/*}.php; │
+     │ app/Http/Requests/StoreQuoteRequest.php; app/Rules/Cnp.php;             │
+     │ app/Models/{Profile,QuoteRequest,ProviderQuote,Offer,Policy,ApiLog,Audi │
+     │ tEvent,County,Locality}.php; app/Console/Commands/SyncNomenclature.php; │
+     │ migrări; resources/views/**.                                            │
+     │                                                                         │
+     │ Modificate: routes/web.php, .env.example, app/Models/User.php (relația  │
+     │ profile()), resources/js/app.js (Alpine), resources/css/app.css,        │
+     │ README.md.                                                              │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Verificare                                                              │
+     │                                                                         │
+     │ 1. curl -X POST                                                         │
+     │    'https://rca-qa.api.lifeishard.ro/auth?account=test&password=test' → │
+     │    token. (Confirmă whitelist-ul de IP.)                                │
+     │ 2. php artisan rca:sync-nomenclature → județele și localitățile sunt în │
+     │    SQLite.                                                              │
+     │ 3. php artisan test → testele de payload reproduc exemplele din task;   │
+     │    testele de feature folosesc Http::fake() (inclusiv un provider care  │
+     │    eșuează, ca DallBogg).                                               │
+     │ 4. composer dev → completez formularul cu datele reale din task (Giosu  │
+     │    Robert, CNP 5050518020094, VW Golf AR08WSX) și confirm că prețurile  │
+     │    returnate sunt în aceeași zonă cu cele din exemple.                  │
+     │ 5. sqlite3 database/database.sqlite "select provider,status,duration_ms │
+     │    from provider_quotes; select method,url,response_status from         │
+     │    api_logs;" → există câte o linie per asigurător și per apel HTTP.    │
+     │ 6. Emit o poliță de la asigurătorul cel mai ieftin → verific            │
+     │    serie+număr în policies și că PDF-ul se descarcă.                    │
+     │ 7. Register → completez profilul → logout → login → /oferta vine        │
+     │    pre-completat.                                                       │
+     │ 8. /istoric/{uuid} arată input-ul introdus, cei 11 provideri și traseul │
+     │    complet de apeluri API.                                              │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Riscuri                                                                 │
+     │                                                                         │
+     │ - IP whitelisting — documentația spune că accesul e limitat la IP-uri   │
+     │   autorizate. Postman-ul a funcționat de pe această mașină, deci ar     │
+     │   trebui să fie ok, dar se verifică la pasul 1.                         │
+     │ - startDate din exemple e 2026-09-15, iar azi e 2026-08-29. Data de     │
+     │   start trebuie să fie în viitor; pun o validare after_or_equal:today   │
+     │   și valoare implicită mâine.                                           │
+     │ - Timp de răspuns — 11 apeluri în paralel, fiecare cu timeout 30s. Dacă │
+     │   mai mulți asigurători sunt lenți, request-ul poate dura ~30s. De      │
+     │   aceea timeout-ul e configurabil și există spinner.                    │
+     │ - Trasabilitatea vs. datele personale — api_logs conține payload-uri cu │
+     │   CNP-uri în clar (e inerent cerinței). Mitigare: tokenul și parolele   │
+     │   se maschează, iar vizualizarea log-urilor e în spatele                │
+     │   autentificării.                                                       │
+     │                                                                         │
+     │ ---                                                                     │
+     │                                                                         │
+     │ Opțional (nu în scopul cerut — de confirmat separat)                    │
+     │                                                                         │
+     │ - Auto-completare vehicul din GET /vehicle?licensePlate=... — reduce    │
+     │   dramatic formularul: userul tastează numărul de înmatriculare și marc │
+     │   a/modelul/VIN-ul/cilindreea/puterea/masa/locurile/combustibilul/anul  │
+     │   vin de la DRPCIV.                                                     │
+     │ - Colecție Postman versionată în docs/postman/ pentru Pas 1 și Pas 2.   │
+     │ - Salvarea vehiculelor pe contul userului, ca la a doua cotație să nu   │
+     │   recompleteze datele mașinii.                                          │
+     ╰─────────────────────────────────────────────────────────────────────────╯
+
+⏺ Înțeles — schimb modul de lucru: eu îți dictez, tu scrii. Actualizez planul ca
+  să reflecte asta.
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ Updated plan
+  ⎿  /plan to preview
+
+⏺ User approved Claude's plan
+  ⎿  Plan saved to: 
+     ~/.claude/plans/pentru-urmatorul-proiect-inainte-eager-heron.md · /plan to 
+     edit
+     Calculator RCA — aplicație Laravel peste API-ul Life is Hard
+
+     Context
+
+     Repo-ul e un scaffold Laravel 13 gol (doar User, migrarea de users,
+     welcome.blade.php). Trebuie construită de la zero o aplicație web care:
+
+     1. se autentifică la https://rca-qa.api.lifeishard.ro (POST /auth, cont
+        test/test),
+     2. cere cotații RCA (POST /offer) de la toți asigurătorii și le afișează
+        comparativ,
+     3. transformă o ofertă aleasă în poliță (POST /policy),
+     4. descarcă PDF-ul ofertei/poliței,
+     5. are login/register propriu, iar datele personale ale userului logat
+        pre-populează formularul de ofertă.
+
+     Cerință obligatorie: trasabilitate la tot ce se introduce în Web. Asta e
+     tratată ca cerință de prim rang, nu ca logging accidental — vezi secțiunea
+     Trasabilitate.
+
+     Decizii confirmate cu utilizatorul
+
+     ┌───────────────┬────────────────────┬────────────────────────────────────┐
+     │    Decizie    │      Alegere       │               De ce                │
+     ├───────────────┼────────────────────┼────────────────────────────────────┤
+     │               │ Toți asigurătorii  │ E comportamentul de „calculator    │
+     │ Cotație       │ în paralel         │ RCA"; Http::pool() face cele 11    │
+     │               │                    │ apeluri simultan                   │
+     ├───────────────┼────────────────────┼────────────────────────────────────┤
+     │               │ Blade + Tailwind + │ Cel mai ușor de urmărit: flux      │
+     │ Front-end     │  Alpine minimal    │ liniar PHP. Alpine doar pentru     │
+     │               │                    │ spinner + dropdown localități      │
+     ├───────────────┼────────────────────┼────────────────────────────────────┤
+     │ payment la    │ Auto-generat, un   │ Nu e plată reală; se completează   │
+     │ emitere       │ click              │ broker receipt + sumă din ofertă + │
+     │               │                    │  data de azi + număr generat       │
+     ├───────────────┼────────────────────┼────────────────────────────────────┤
+     │               │ Scris manual,      │ 3 controllere peste Auth din       │
+     │ Auth useri    │ minimal            │ Laravel, fără dependențe noi,      │
+     │               │                    │ control total pe câmpurile RCA     │
+     ├───────────────┼────────────────────┼────────────────────────────────────┤
+     │ PHP/Composer  │ Le instalez eu     │ php -v → command not found;        │
+     │               │                    │ folosesc scriptul din CLAUDE.md    │
+     └───────────────┴────────────────────┴────────────────────────────────────┘
+
+     ---
+
+     Mod de lucru: eu dictez, tu scrii
+
+     Nu modific niciun fișier din proiect. Rolul meu e de a-ți spune, pas cu
+     pas, ce ai de scris și de ce.
+
+     Pentru fiecare pas îți dau, în ordine:
+
+     1. Ce facem și de ce — problema pe care o rezolvă pasul și de ce alegerea
+        asta, nu alta.
+     2. Ce fișier — calea exactă și comanda artisan de generare, dacă există una
+        (php artisan make:model ...).
+     3. Conținutul complet al fișierului, gata de copiat — nu fragmente vagi.
+     4. Explicația pe bucăți — de ce fiecare parte importantă e scrisă așa (nu
+        comentez linii banale ca <?php).
+     5. Cum verifici că pasul a ieșit bine, înainte să mergem mai departe.
+
+     Tu scrii fișierele, rulezi comenzile și îmi spui „gata" (sau îmi arăți
+     eroarea). Abia atunci trecem la pasul următor. Dacă ceva nu e clar sau vrei
+     altă abordare, ne oprim și discutăm — nu ai de ce să scrii cod pe care
+     nu-l înțelegi.
+
+     Singura excepție: Pasul 0 (instalarea PHP) e o comandă de shell, nu cod —
+     ai ales să o rulez eu. Spune-mi dacă preferi să o rulezi tu.
+
+     ---
+
+     Ce am aflat citind API-ul (corecții față de presupunerile inițiale)
+
+     Am descărcat specificația OpenAPI oficială:
+     https://api.lifeishard.ro/redocusaurus/rca-api.yaml. Trei lucruri contrazic
+     ce s-ar presupune din exemplele din Postman:
+
+     1. PDF-urile NU sunt binare. GET /offer/{id} și GET /policy/{id} întorc
+        JSON cu data.files[], fiecare având {type, name, content} unde content e
+        base64. Deci se decodează în PHP și se salvează pe disc — nu se face
+        proxy la un stream binar.
+     2. Există endpoint-uri de nomenclator pe același API, cu același token —
+        asta rezolvă problema cityCode:
+        - GET /nomenclature/county → [{county_code: "CJ", name: "CLUJ", siruta: 
+          127}]
+        - GET /nomenclature/locality/{county_code} → [{nume: "CLUJ-NAPOCA", 
+          cod_judet: "CJ", cod_siruta: 54984}]
+        - GET /nomenclature/country → [{name, iso2, iso3}]
+
+        address.county acceptă county_code, address.city acceptă nume,
+        address.cityCode acceptă cod_siruta. Fără astea formularul nu poate
+        produce un request valid, deci nomenclatorul e o precondiție, nu un
+        moft.
+     3. renewPolicy e opțional. În exemplele din task apare cu valori evident
+        dummy (XX/XX/XX / 123456789) la unii asigurători. Îl trimit doar dacă 
+        utilizatorul completează efectiv seria + numărul poliței anterioare —
+        altfel îl omit din payload.
+
+     Alte lucruri utile din spec:
+     - GET /vehicle?licensePlate=... întoarce marcă, model, VIN, capacitate,
+       putere, masă, locuri, combustibil, an — se poate auto-completa jumătate
+       din formular (vezi Opțional).
+     - Câmpuri obligatorii: Vehicle → registrationType, vin, vehicleType, brand,
+       model, yearOfConstruction, totalWeight, usageType; Person → taxId, 
+       address; Address → county, city, cityCode, street; Motor → startDate, 
+       termTime; Driver → lastName, firstName, taxId, identification.idNumber.
+     - provider.authentication se trimite cu account/password/code goale — în QA
+       se folosesc credențialele implicite ale platformei.
+     - Header Content-Language: ro face mesajele de eroare să vină în română. Îl
+       trimit mereu.
+     - Documentația menționează restricție pe IP whitelist pentru ambele medii →
+       de verificat primul lucru (vezi Verificare).
+
+     Particularități per asigurător (product.additionalData)
+
+     Sunt reale și diferite; le țin declarativ în config/rca.php, nu în if-uri
+     prin cod:
+
+     ┌─────────────────────┬───────────────────────────────────────────────────┐
+     │     Asigurător      │              additionalData necesar               │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ generali            │ product.vehicle.expirationDatePti (obligatoriu),  │
+     │                     │ bonusMalusPrevClass, noYoungDriver                │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │                     │ product.bonusMalusPrevClass,                      │
+     │ omniasig            │ bonusMalusCurrentClass,                           │
+     │                     │ product.vehicle.expirationDatePti                 │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ grawe               │ product.bonusMalusPrevClass/CurrentClass; adresa  │
+     │                     │ cu floor                                          │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ groupama,           │                                                   │
+     │ hellas_autonom,     │ product.vehicle.expirationDatePti                 │
+     │ hellas_nextins      │                                                   │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ axeria              │ fără additionalData, dar address.houseNumber e    │
+     │                     │ obligatoriu                                       │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ allianz, asirom,    │ nimic special                                     │
+     │ eazy_insure         │                                                   │
+     ├─────────────────────┼───────────────────────────────────────────────────┤
+     │ dallbogg            │ se apelează, dar eroarea e așteptată și tratată   │
+     │                     │ ca „indisponibil"                                 │
+     └─────────────────────┴───────────────────────────────────────────────────┘
+
+     ---
+
+     Arhitectură
+
+     1. Configurare (credențialele NU ajung în front-end)
+
+     .env / .env.example:
+     RCA_BASE_URL=https://rca-qa.api.lifeishard.ro
+     RCA_ACCOUNT=test
+     RCA_PASSWORD=test
+     RCA_TIMEOUT=30
+     RCA_CONNECT_TIMEOUT=10
+
+     config/rca.php — nou: base url, credențiale citite din env(), timeouts, și
+     lista de provideri cu slug, label (nume afișat), additionalData necesar.
+     Nicio valoare din astea nu ajunge vreodată în Blade sau în JS; front-end-ul
+     vorbește doar cu rutele interne ale aplicației.
+
+     2. Stratul de servicii — app/Services/Rca/
+
+     Separat de controllere ca să fie testabil cu Http::fake() și ca logica de
+     payload să nu se amestece cu HTTP-ul.
+
+     - RcaTokenManager — obține și cachează JWT-ul. Cache::remember('rca.token',
+       ...) cu TTL derivat din expires_at minus 5 min marjă. Reînnoire cu PATCH
+       /auth + refresh_token; dacă și aia eșuează, POST /auth din nou. Tokenul
+       se ia o singură dată, înainte de pool — nu de 11 ori.
+     - RcaClient — wrapper subțire peste Http: base URL, header Token,
+       Content-Language: ro, timeouts, și scrie o linie în api_logs pentru 
+       fiecare apel. Toate celelalte servicii trec prin el.
+     - OfferPayloadBuilder — transformă datele validate din formular în JSON-ul
+       imbricat al API-ului (provider / product.motor / policyholder / vehicle /
+       additionalData), aplicând particularitățile per asigurător din
+       config/rca.php. Aici stă toată „traducerea"; e clasa cea mai importantă
+       de testat unitar.
+     - OfferService — construiește payload-ul pentru fiecare provider, rulează
+       Http::pool(), normalizează răspunsurile (succes cu oferte / eroare cu
+       mesaj) și persistă totul.
+     - PolicyService — POST /policy cu payment auto-generat; salvează polița.
+     - PdfService — GET /offer/{id} / GET /policy/{id}, decodează base64 din
+       data.files[].content, salvează în storage/app/private/rca/ și întoarce
+       calea.
+     - NomenclatureService — citește județe/localități din tabelele locale, nu
+       din API la fiecare request.
+
+     Detaliu tehnic pe Http::pool(): excepțiile dintr-un pool nu se aruncă — vin
+     ca obiecte ConnectionException în array-ul de rezultate, deci fiecare
+     element trebuie verificat cu instanceof. Pentru durata per-provider
+     folosesc opțiunea Guzzle on_stats pe fiecare request din pool (durata
+     totală a pool-ului nu spune nimic despre cine a fost lent).
+
+     3. Baza de date (SQLite) — trasabilitate
+
+     Migrări noi. Modelele urmează stilul Laravel 13 din scaffold (atribute
+     #[Fillable([...])], nu proprietăți).
+
+     Date de business:
+     - profiles — datele personale ale userului: user_id, nume/prenume, tax_id
+       (CNP), naștere, gen, cetățenie, telefon, CI (id_type, id_number,
+       issue_authority, issue_date), driving_license_issue_date, adresă completă
+       (county, city, city_code, street, house_number, building, staircase,
+       apartment, floor, postcode), has_disability, is_retired. tax_id și 
+       id_number cu cast encrypted — sunt date personale sensibile, iar costul e
+       o linie de cod.
+     - quote_requests — o linie per apăsare pe „Calculează". uuid public,
+       user_id (nullable — merge și fără cont), input (JSON cu tot ce s-a
+       completat), status, ip, user_agent, session_id. Se scrie înainte de 
+       apelurile la API, deci input-ul rămâne salvat chiar dacă totul eșuează —
+       asta e miezul cerinței de trasabilitate.
+     - provider_quotes — o linie per asigurător interogat: quote_request_id,
+       provider, status (ok/error/timeout), http_status, duration_ms,
+       error_message.
+     - offers — o linie per ofertă returnată: offer_id (de la API),
+       provider_offer_code, premium_amount, premium_amount_net, currency,
+       start_date, end_date, reference_rate, bonus_malus_class,
+       commission_value/percent, direct_compensation (JSON), installments
+       (JSON), green_card_exclusions, notes, offer_expiry_date, pid, toc, raw
+       (JSON).
+     - policies — offer_id local, policy_id API, series, number, sume, date,
+       payment (JSON), installments (JSON), pdf_path, raw.
+     - counties, localities — nomenclatorul sincronizat local.
+
+     Trasabilitate propriu-zisă:
+     - api_logs — o linie per apel HTTP ieșit: correlation_id, user_id,
+       quote_request_id, method, url, request_headers, request_body,
+       response_status, response_body, duration_ms, error, ip, created_at.
+       Tokenul JWT și parolele se maschează la scriere.
+     - audit_events — o linie per acțiune a utilizatorului în Web: user_id,
+       session_id, ip, user_agent, event (user.registered, user.login,
+       user.logout, profile.updated, quote.requested, policy.issued,
+       pdf.downloaded), subject_type/subject_id, payload, created_at.
+
+     Un correlation_id (UUID) generat per request web leagă rândul din
+     quote_requests, rândurile din api_logs și evenimentele din audit_events —
+     se poate reconstitui exact ce a introdus un user și ce a plecat spre
+     asigurători.
+
+     4. Rute și UI
+
+     Fără routes/api.php (scaffold-ul Laravel 13 nu îl are). Endpoint-urile JSON
+     pentru Alpine stau tot în routes/web.php, ca să beneficieze de sesiune +
+     CSRF fără configurare suplimentară.
+
+     GET    /                          → redirect la /oferta
+     GET    /oferta                    → formularul (pre-completat din profil
+     dacă e logat)
+     POST   /oferta                    → JSON; rulează pool-ul, salvează,
+     întoarce ofertele
+     GET    /oferta/{uuid}             → pagina de rezultate (persistată,
+     re-vizitabilă)
+     GET    /oferta/{uuid}/pdf/{offer} → PDF-ul ofertei
+     POST   /oferta/{uuid}/emite/{offer} → POST /policy → redirect la poliță
+     GET    /polita/{policy}           → detaliu poliță
+     GET    /polita/{policy}/pdf       → PDF-ul poliței
+     GET    /localitati/{county}       → JSON pentru dropdown-ul de localități
+     GET    /istoric                   → lista cererilor userului
+     GET    /istoric/{uuid}            → detaliu + traseul complet de apeluri
+     API
+     GET|POST /register, /login        → auth
+     POST   /logout
+     GET|PATCH /profil                 → datele personale
+
+     Formularul (resources/views/oferta/form.blade.php) — trei secțiuni pe o
+     pagină, nu wizard (mai simplu de urmărit):
+     - Poliță: dată start, durată (1–12 luni), număr rate (1/2/4/12), opțional
+       seria+numărul poliței anterioare.
+     - Asigurat: nume, prenume, CNP, data nașterii, gen, email, telefon, CI
+       (tip/serie-număr/emitent/dată), data permisului, adresă (județ →
+       localitate ca select dependent, stradă, număr, etaj, cod poștal),
+       dizabilitate, pensionar.
+     - Vehicul: număr înmatriculare, tip înmatriculare, VIN, categorie, marcă,
+       model, an, cilindree, putere, masă, locuri, combustibil, prima
+       înmatriculare, utilizare, serie CIV, km, data expirării ITP,
+       leasing/nou/modificări mobilitate.
+     - Checkbox „Șoferul este aceeași persoană cu asiguratul" (bifat implicit) —
+       populează vehicle.driver[0] din datele asiguratului.
+
+     Validare — StoreQuoteRequest (FormRequest) cu regulile din spec (enum-uri
+     pentru vehicleType, fuelType, usageType, registrationType, idType, gender)
+     plus o regulă custom Cnp care verifică cifra de control a CNP-ului
+     românesc. Motivul: prinde greșelile local, înainte să irosim 11 apeluri
+     către asigurători.
+
+     Pagina de rezultate — tabel sortat crescător după preț, cu preț, preț net,
+     clasa bonus-malus, comision, decontare directă, excluderi carte verde,
+     note, link PID/TOC, buton „Descarcă oferta PDF" și „Emite polița".
+     Asigurătorii care au eșuat apar la final ca „indisponibil: <mesaj>" —
+     inclusiv DallBogg, care e așteptat să eșueze.
+
+     Alpine — strict două lucruri: (1) fetch la POST /oferta cu spinner și
+     afișare progresivă, (2) reîncărcarea select-ului de localități la
+     schimbarea județului. Restul e Blade.
+
+     5. Comandă artisan
+
+     php artisan rca:sync-nomenclature — apelează GET /nomenclature/county, apoi
+     GET /nomenclature/locality/{code} pentru fiecare județ, și umple counties
+     / localities. ~43 de apeluri, o singură dată. Alternativa (apel la API la
+     fiecare schimbare de județ) ar fi lentă și ar polua log-ul de trasabilitate
+     cu zgomot.
+
+     ---
+
+     Pașii pe care ți-i dictez
+
+     Fiecare pas e un mesaj de la mine, cu fișierele complete și explicația.
+     Ordinea nu e negociabilă: fiecare pas se poate verifica independent, ca să
+     nu ajungem în situația în care nu merge nimic și nu știm de ce.
+
+     Fundație
+     0. Instalare PHP 8.5 + Composer, composer install, .env, key:generate,
+     database.sqlite, npm install. (comandă de shell — o rulez eu)
+     1. Verificare conectivitate: un curl la POST /auth. Dacă IP-ul tău nu e 
+        whitelisted, totul se oprește aici — de asta e primul pas.
+     2. .env + config/rca.php — credențialele și lista de asigurători cu
+        particularitățile lor.
+
+     Trasabilitate și date (înainte de orice apel real — ca să avem unde loga de
+     la primul request)
+     3. Migrările pentru api_logs și audit_events + modelele lor.
+     4. Migrările + modelele de business: quote_requests, provider_quotes,
+     offers, policies.
+     5. Migrările + modelele de nomenclator: counties, localities.
+
+     Comunicarea cu API-ul
+     6. RcaTokenManager — obținerea și cache-uirea JWT-ului, reînnoirea cu
+     refresh_token.
+     7. RcaClient — wrapper-ul peste Http care scrie automat în api_logs la
+     fiecare apel.
+     8. Primul test cu Http::fake(), ca să vezi cum se testează fără să lovești
+     API-ul real.
+     9. NomenclatureService + comanda rca:sync-nomenclature; o rulezi și
+     verifici ~42 județe și ~13.000 de localități în SQLite.
+
+     Cotația (Pas 3 din cerință)
+     10. OfferPayloadBuilder — traducerea din formular în JSON-ul imbricat al
+     API-ului, cu additionalData per asigurător.
+     11. Test unitar care reproduce exact payload-ul Allianz din exemplele tale.
+     Dacă testul trece, știm sigur că builder-ul e corect înainte să atingem
+     HTTP-ul.
+     12. OfferService cu Http::pool() + salvarea în quote_requests /
+     provider_quotes / offers.
+     13. Regula de validare Cnp + StoreQuoteRequest.
+     14. Layout-ul Blade + Tailwind și formularul de ofertă.
+     15. QuoteController + rutele; bucata de Alpine cu spinner și dropdown-ul de
+     localități.
+     16. Pagina de rezultate comparative. Aici vezi primele prețuri reale.
+
+     Poliță și PDF (Pașii 4 și 5)
+     17. PolicyService — emiterea cu payment auto-generat + pagina de poliță.
+     18. PdfService — decodarea base64 din data.files[].content, salvarea pe
+     disc și download, pentru ofertă și poliță.
+
+     Utilizatori (Pas 6)
+     19. Migrarea + modelul profiles, cu tax_id și id_number criptate.
+     20. Register / login / logout scrise manual + paginile lor.
+     21. Pagina „Profilul meu" și pre-completarea formularului de ofertă din
+     profil.
+
+     Închidere
+     22. audit_events pe toate acțiunile + paginile /istoric și /istoric/{uuid},
+     care fac trasabilitatea vizibilă, nu doar stocată.
+     23. README.md cu instrucțiuni de rulare și explicația fluxului.
+
+     ---
+
+     Fișiere principale
+
+     Noi: config/rca.php; app/Services/Rca/{RcaClient,RcaTokenManager,OfferPaylo
+     adBuilder,OfferService,PolicyService,PdfService,NomenclatureService}.php;
+     app/Http/Controllers/{QuoteController,PolicyController,ProfileController,Au
+     th/*}.php; app/Http/Requests/StoreQuoteRequest.php; app/Rules/Cnp.php;
+     app/Models/{Profile,QuoteRequest,ProviderQuote,Offer,Policy,ApiLog,AuditEve
+     nt,County,Locality}.php; app/Console/Commands/SyncNomenclature.php;
+     migrări; resources/views/**.
+
+     Modificate: routes/web.php, .env.example, app/Models/User.php (relația
+     profile()), resources/js/app.js (Alpine), resources/css/app.css, README.md.
+
+     ---
+
+     Verificare finală (comenzi pe care le rulezi tu)
+
+     1. curl -X POST 
+        'https://rca-qa.api.lifeishard.ro/auth?account=test&password=test' →
+        token. (Confirmă whitelist-ul de IP.)
+     2. php artisan rca:sync-nomenclature → județele și localitățile sunt în
+        SQLite.
+     3. php artisan test → testele de payload reproduc exemplele din task;
+        testele de feature folosesc Http::fake() (inclusiv un provider care
+        eșuează, ca DallBogg).
+     4. composer dev → completez formularul cu datele reale din task (Giosu
+        Robert, CNP 5050518020094, VW Golf AR08WSX) și confirm că prețurile
+        returnate sunt în aceeași zonă cu cele din exemple.
+     5. sqlite3 database/database.sqlite "select provider,status,duration_ms 
+        from provider_quotes; select method,url,response_status from api_logs;"
+        → există câte o linie per asigurător și per apel HTTP.
+     6. Emit o poliță de la asigurătorul cel mai ieftin → verific serie+număr în
+        policies și că PDF-ul se descarcă.
+     7. Register → completez profilul → logout → login → /oferta vine
+        pre-completat.
+     8. /istoric/{uuid} arată input-ul introdus, cei 11 provideri și traseul
+        complet de apeluri API.
+
+     ---
+
+     Riscuri
+
+     - IP whitelisting — documentația spune că accesul e limitat la IP-uri
+       autorizate. Postman-ul a funcționat de pe această mașină, deci ar trebui
+       să fie ok, dar se verifică la pasul 1.
+     - startDate din exemple e 2026-09-15, iar azi e 2026-08-29. Data de start
+       trebuie să fie în viitor; pun o validare after_or_equal:today și valoare
+       implicită mâine.
+     - Timp de răspuns — 11 apeluri în paralel, fiecare cu timeout 30s. Dacă mai
+       mulți asigurători sunt lenți, request-ul poate dura ~30s. De aceea
+       timeout-ul e configurabil și există spinner.
+     - Trasabilitatea vs. datele personale — api_logs conține payload-uri cu
+       CNP-uri în clar (e inerent cerinței). Mitigare: tokenul și parolele se
+       maschează, iar vizualizarea log-urilor e în spatele autentificării.
+
+     ---
+
+     Opțional (nu în scopul cerut — de confirmat separat)
+
+     - Auto-completare vehicul din GET /vehicle?licensePlate=... — reduce
+       dramatic formularul: userul tastează numărul de înmatriculare și
+       marca/modelul/VIN-ul/cilindreea/puterea/masa/locurile/combustibilul/anul
+       vin de la DRPCIV.
+     - Colecție Postman versionată în docs/postman/ pentru Pas 1 și Pas 2.
+     - Salvarea vehiculelor pe contul userului, ca la a doua cotație să nu
+       recompleteze datele mașinii.
+
+⏺ Încep cu Pasul 0. Întâi verific dacă nu există deja un PHP instalat undeva pe
+  sistem, înainte să instalez altul.
+
+  Listed 1 directory (ctrl+o to expand)
+
+⏺ Nu există PHP nicăieri. Rulez scriptul de instalare din CLAUDE.md (PHP 8.5 +
+  Composer).
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Cât se instalează, verific în paralel Pasul 1 — conectivitatea la API (dacă
+  IP-ul nu e whitelisted, aflăm acum, nu peste 3 ore).
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Background command "Install PHP 8.5 and Composer via php.new" completed (exit
+code 0)
+
+⏺ API-ul răspunde, IP-ul e whitelisted. Verific instalarea PHP.
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ PHP 8.5.0 + Composer 2.8.12, cu pdo_sqlite inclus. Continui setup-ul din Pasul
+  0.
+
+  Read 1 file, ran 3 shell commands (ctrl+o to expand)
+
+⏺ Background command "Install Composer dependencies" completed (exit code 0)
+
+⏺ Background command "Install npm dependencies" completed (exit code 0)
+
+⏺ Pasul 0 și Pasul 1 sunt gata. Ce am făcut:
+
+  - PHP 8.5.0 + Composer 2.8.12 instalate în ~/.config/herd-lite/bin (are
+    pdo_sqlite — exact ce ne trebuie)
+  - composer install (80 pachete) și npm install — OK
+  - .env creat din .env.example, APP_KEY generat, database/database.sqlite
+    creat, migrările de bază rulate (9 tabele)
+  - POST /auth răspunde 200 în 0.52s → IP-ul tău e whitelisted, riscul cel mai
+    mare al proiectului a dispărut
+
+  ⚠️ Rulează în terminalul tău source ~/.zshrc (sau redeschide-l), altfel php nu
+  e în PATH la tine.
+
+  ---
+
+  Pasul 2 — Configurarea
+
+  Ce facem și de ce
+
+  Două fișiere. Ideea centrală: niciun secret și nicio listă de reguli nu ajunge
+  în Blade sau în JavaScript. Cerința ta spune explicit „credențialele de la
+  PAS 1 se pun în .env, nu în front end" — dar merg puțin mai departe: pun în
+  config și lista asigurătorilor și toate enumerările din API, ca să existe o
+  singură sursă de adevăr.
+
+  De ce contează a doua parte: fuelType (diesel/petrol/electric/hybrid/lpg) va
+  fi folosit în trei locuri — regula de validare, <select>-ul din formular, și
+  eticheta afișată în rezultate. Dacă le scriu de trei ori, la prima modificare
+  uit unul. Așa, le scriu o dată.
+
+  ---
+
+  Fișierul 1: .env — adaugă la final
+
+  dotenv
+  RCA_BASE_URL=https://rca-qa.api.lifeishard.ro
+  RCA_ACCOUNT=test
+  RCA_PASSWORD=test
+  RCA_TIMEOUT=30
+  RCA_CONNECT_TIMEOUT=10
+
+  Fișierul 2: .env.example — adaugă la final
+
+  dotenv
+  RCA_BASE_URL=https://rca-qa.api.lifeishard.ro
+  RCA_ACCOUNT=
+  RCA_PASSWORD=
+  RCA_TIMEOUT=30
+  RCA_CONNECT_TIMEOUT=10
+
+  De ce diferite: .env e în .gitignore și conține valorile reale; .env.example e
+  în Git și e doar un formular gol. Cine clonează repo-ul vede ce variabile îi
+  trebuie, fără să primească și credențialele. Chiar dacă test/test sunt publice
+  pentru QA, obiceiul ăsta e cel care te salvează când treci pe producție.
+
+  ---
+
+  Fișierul 3: config/rca.php — creează-l
+
+  <?php
+
+  return [
+
+      /*
+      
+  |--------------------------------------------------------------------------
+      | Conexiunea la API-ul Life is Hard
+      
+  |--------------------------------------------------------------------------
+      */
+
+      'base_url' => env('RCA_BASE_URL', 'https://rca-qa.api.lifeishard.ro'),
+
+      'account'  => env('RCA_ACCOUNT'),
+      'password' => env('RCA_PASSWORD'),
+
+      'timeout'         => (int) env('RCA_TIMEOUT', 30),
+      'connect_timeout' => (int) env('RCA_CONNECT_TIMEOUT', 10),
+
+      // Trimis ca header Content-Language; face ca erorile de la API sa vina in
+  romana.
+      'language' => env('RCA_LANGUAGE', 'ro'),
+
+      /*
+      
+  |--------------------------------------------------------------------------
+      | Asiguratorii interogati
+      
+  |--------------------------------------------------------------------------
+      |
+      | 'extra' spune ce trebuie adaugat in product.additionalData pentru
+      | asiguratorul respectiv. Valori posibile:
+      |
+      |   pti                 -> 
+  additionalData.product.vehicle.expirationDatePti
+      |   bonus_malus_prev    -> additionalData.product.bonusMalusPrevClass
+      |   bonus_malus_current -> additionalData.product.bonusMalusCurrentClass
+      |   house_number        -> address.houseNumber devine obligatoriu
+      |
+      | 'expect_failure' marcheaza asiguratorii despre care stim ca nu raspund
+      | in mediul QA, ca sa nu fie afisati ca o eroare reala.
+      |
+      */
+
+      'providers' => [
+
+          'allianz' => [
+              'label' => 'Allianz-Țiriac',
+              'extra' => [],
+          ],
+
+          'asirom' => [
+              'label' => 'Asirom',
+              'extra' => [],
+          ],
+
+          'axeria' => [
+              'label' => 'Axeria',
+              'extra' => ['house_number'],
+          ],
+
+          'eazy_insure' => [
+              'label' => 'Eazy Insure',
+              'extra' => [],
+          ],
+
+          'generali' => [
+              'label' => 'Generali',
+              'extra' => ['pti', 'bonus_malus_prev'],
+          ],
+
+          'grawe' => [
+              'label' => 'Grawe',
+              'extra' => ['bonus_malus_prev', 'bonus_malus_current'],
+          ],
+
+          'groupama' => [
+              'label' => 'Groupama',
+              'extra' => ['pti'],
+          ],
+
+          'hellas_autonom' => [
+              'label' => 'Hellas Direct (Autonom)',
+              'extra' => ['pti'],
+          ],
+
+          'hellas_nextins' => [
+              'label' => 'Hellas Direct (NextIns)',
+              'extra' => ['pti'],
+          ],
+
+          'omniasig' => [
+              'label' => 'Omniasig',
+              'extra' => ['pti', 'bonus_malus_prev', 'bonus_malus_current'],
+          ],
+
+          'dallbogg' => [
+              'label'          => 'DallBogg',
+              'extra'          => [],
+              'expect_failure' => true,
+          ],
+
+      ],
+
+      /*
+      
+  |--------------------------------------------------------------------------
+      | Enumerarile din API
+      
+  |--------------------------------------------------------------------------
+      |
+      | Cheia = valoarea trimisa la API. Valoarea = eticheta afisata in 
+  interfata.
+      | Folosite si la validare (array_keys), si la <select>-urile din formular.
+      |
+      */
+
+      'enums' => [
+
+          'registration_type' => [
+              'registered'          => 'Înmatriculat',
+              'recorded'            => 'Înregistrat',
+              'temporaryRegistered' => 'Înmatriculat temporar',
+              'temporaryRecorded'   => 'Înregistrat temporar',
+          ],
+
+          'vehicle_type' => [
+              'M1'  => 'M1 — Autoturism',
+              'M1G' => 'M1G — Autoturism de teren',
+              'M2'  => 'M2 — Autobuz până în 5t',
+              'M2G' => 'M2G — Autobuz de teren până în 5t',
+              'M3'  => 'M3 — Autobuz peste 5t',
+              'M3G' => 'M3G — Autobuz de teren peste 5t',
+              'N1'  => 'N1 — Autoutilitară până în 3,5t',
+              'N1G' => 'N1G — Autoutilitară de teren până în 3,5t',
+              'N2'  => 'N2 — Camion 3,5–12t',
+              'N2G' => 'N2G — Camion de teren 3,5–12t',
+              'N3'  => 'N3 — Camion peste 12t',
+              'N3G' => 'N3G — Camion de teren peste 12t',
+              'O1'  => 'O1 — Remorcă până în 0,75t',
+              'O2'  => 'O2 — Remorcă 0,75–3,5t',
+              'O3'  => 'O3 — Remorcă 3,5–10t',
+              'O4'  => 'O4 — Remorcă peste 10t',
+              'L1e' => 'L1e — Moped 2 roți',
+              'L2e' => 'L2e — Moped 3 roți',
+              'L3e' => 'L3e — Motocicletă',
+              'L4e' => 'L4e — Motocicletă cu ataș',
+              'L5e' => 'L5e — Mototriciclu',
+              'L6e' => 'L6e — Cvadriciclu ușor',
+              'L7e' => 'L7e — Cvadriciclu',
+              'T'   => 'T — Tractor pe roți',
+              'C'   => 'C — Tractor pe șenile',
+              'R'   => 'R — Remorcă agricolă',
+              'S'   => 'S — Echipament tractat',
+          ],
+
+          'fuel_type' => [
+              'diesel'   => 'Motorină',
+              'petrol'   => 'Benzină',
+              'electric' => 'Electric',
+              'hybrid'   => 'Hibrid',
+              'lpg'      => 'GPL',
+          ],
+
+          'usage_type' => [
+              'personal'                => 'Personal',
+              'passengerTransportation' => 'Transport persoane',
+              'taxi'                    => 'Taxi',
+              'carRental'               => 'Închirieri auto',
+              'drivingSchool'           => 'Școală de șoferi',
+              'security'                => 'Pază și protecție',
+              'courier'                 => 'Curierat',
+              'cargoTransportation'     => 'Transport marfă',
+              'distribution'            => 'Distribuție',
+          ],
+
+          'id_type' => [
+              'CI'       => 'Carte de identitate',
+              'PASSPORT' => 'Pașaport',
+          ],
+
+          'gender' => [
+              'm' => 'Masculin',
+              'f' => 'Feminin',
+          ],
+
+          'installment_count' => [
+              1  => 'O singură rată',
+              2  => '2 rate',
+              4  => '4 rate',
+              12 => '12 rate',
+          ],
+
+          'bonus_malus' => [
+              'B0' => 'B0', 'B1' => 'B1', 'B2' => 'B2', 'B3' => 'B3',
+              'B4' => 'B4', 'B5' => 'B5', 'B6' => 'B6', 'B7' => 'B7',
+              'B8' => 'B8',
+              'M1' => 'M1', 'M2' => 'M2', 'M3' => 'M3', 'M4' => 'M4',
+              'M5' => 'M5', 'M6' => 'M6', 'M7' => 'M7', 'M8' => 'M8',
+          ],
+
+          'payment_method' => [
+              'receipt'              => 'Chitanță',
+              'broker receipt'       => 'Chitanță broker',
+              'payment order'        => 'Ordin de plată',
+              'broker payment order' => 'Ordin de plată broker',
+              'pos'                  => 'POS',
+          ],
+
+      ],
+
+  ];
+
+  ---
+
+  Explicația pe bucăți
+
+  env() doar aici, niciodată în restul aplicației. Regulă de fier în Laravel:
+  env() funcționează exclusiv în fișierele din config/. Când rulezi php artisan 
+  config:cache (obligatoriu în producție), fișierele de config sunt serializate
+  o dată, iar orice env() din controllere sau servicii începe să întoarcă null.
+  De aceea peste tot altundeva vom scrie config('rca.account').
+
+  'extra' ca listă de etichete, nu ca if-uri. Am descoperit citind specificația
+  OpenAPI că fiecare asigurător cere altceva în additionalData — Generali cere
+  obligatoriu data expirării ITP, Omniasig cere în plus clasele bonus-malus,
+  Axeria cere numărul casei în adresă. Aș fi putut scrie în OfferPayloadBuilder
+  un lanț de if ($provider === 'generali') {...} elseif (...). N-am făcut-o
+  pentru că la al treilea asigurător nou fișierul devine ilizibil. Aici, ca să
+  adaugi un asigurător, adaugi patru linii de date și nu atingi niciun pic de
+  logică.
+
+  expect_failure pentru DallBogg. Ai spus că e normal să dea eroare. Fără
+  marcajul ăsta, pagina de rezultate ar arăta un roșu alarmant pentru ceva care
+  e comportament așteptat. Cu el, îi putem afișa „indisponibil în QA" liniștit.
+
+  De ce enumerările au chei și etichete. Cheia ('diesel') e ce trimitem la API —
+  n-avem voie s-o traducem. Eticheta ('Motorină') e ce vede utilizatorul.
+  Ținându-le împreună, validarea devine
+  Rule::in(array_keys(config('rca.enums.fuel_type'))) iar <select>-ul devine un
+  @foreach peste același array. Zero duplicare, zero risc să trimit „Motorină"
+  la API.
+
+  Timeout-urile sunt separate. connect_timeout (10s) e cât așteptăm să se
+  deschidă conexiunea; timeout (30s) e cât așteptăm răspunsul complet. Un
+  asigurător cu serverul picat eșuează în 10 secunde, nu în 30 — contează când
+  interoghezi 11 deodată.
+
+  ---
+
+  Cum verifici
+
+  După ce salvezi cele trei fișiere:
+
+  php artisan config:clear
+  php artisan tinker --execute="dump(config('rca.base_url'), 
+  config('rca.account'), count(config('rca.providers')), 
+  count(config('rca.enums.vehicle_type')));"
+
+  Trebuie să vezi: "https://rca-qa.api.lifeishard.ro", "test", 11, 27.
+
+  Spune-mi „gata" și trecem la Pasul 3 — migrările de trasabilitate (api_logs și
+  audit_events), pe care le facem înaintea oricărui apel real, ca să avem unde
+  loga de la primul request.
+
+✻ Cogitated for 8m 45s · done 6:04 PM
+
+❯ /export                                                                       
+  ⎿  Conversation copied to clipboard
+
+❯ /export                                                                       
+  ⎿  Conversation exported to: /Users/razvandusa/PhpstormProjects/lih-asigurari-
+     rca/2026-08-29-230926-local-command-caveatcaveat-the-messages-below.txt
+
+❯ ok dar ce face rca.php?                                                       
+
+  Listed 1 directory (ctrl+o to expand)
+
+⏺ L-ai creat deja — hai să-ți arăt mecanic ce face, cu fișierul tău real.
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ config/rca.php nu „face" nimic. Nu are clasă, nu are funcție, nu se execută la
+  vreun moment anume. E un fișier care face un singur lucru: return-ează un
+  array. E o foaie de setări, nu un program.
+
+  Cum ajunge Laravel la el
+
+  La fiecare pornire a aplicației, Laravel citește toate fișierele din config/
+  și le pune într-un singur array mare, folosind numele fișierului drept cheie 
+  de nivel 1:
+
+  config/app.php       →  config('app.…')
+  config/database.php  →  config('database.…')
+  config/rca.php       →  config('rca.…')     ← al tău
+
+  Deci array-ul pe care l-ai scris devine adresabil cu punct:
+
+  // ce ai scris în fișier            // cum îl citești oriunde în aplicație
+  'base_url' => '...'              →  config('rca.base_url')
+  'providers' => [
+      'omniasig' => [
+          'extra' => ['pti', ...]  →  config('rca.providers.omniasig.extra')
+      ]
+  ]
+
+  Exact asta ai văzut mai sus: 11 provideri, iar
+  config('rca.providers.omniasig.extra') întoarce cele 3 etichete. Fișierul e
+  deja „viu" în aplicație.
+
+  Traseul unei valori
+
+  .env                    config/rca.php                  codul tău
+  ─────────               ──────────────                  ─────────
+  RCA_ACCOUNT=test  ──→   'account' => env('RCA_ACCOUNT')  ──→
+  config('rca.account')
+     (secret,                  (singurul loc unde                 (peste tot,
+      nu în Git)                e voie să apară env())            fără secrete)
+
+  config/rca.php e stratul de mijloc: ia secretele din .env și le expune
+  restului aplicației sub un nume neutru. Nicăieri altundeva în cod nu vei mai
+  vedea cuvântul RCA_ACCOUNT.
+
+  Cine îl va citi, concret
+
+  Fișierul stă degeaba până în pașii următori. Atunci va fi citit din patru
+  locuri:
+
+  // Pasul 7 — RcaClient: de unde și cu ce timeout vorbim
+  Http::baseUrl(config('rca.base_url'))
+      ->timeout(config('rca.timeout'))
+      ->connectTimeout(config('rca.connect_timeout'));
+
+  // Pasul 12 — OfferService: pe cine interogăm în paralel
+  foreach (config('rca.providers') as $slug => $provider) { ... }
+
+  // Pasul 13 — validarea: ce combustibili acceptăm
+  Rule::in(array_keys(config('rca.enums.fuel_type')))
+
+  // Pasul 14 — formularul Blade: ce apare în dropdown
+  @foreach (config('rca.enums.fuel_type') as $valoare => $eticheta)
+      <option value="{{ $valoare }}">{{ $eticheta }}</option>
+  @endforeach
+
+  Uită-te la ultimele două: aceeași linie de date produce și regula de validare,
+  și dropdown-ul. Dacă mâine API-ul adaugă combustibilul hydrogen, îl scrii
+  într-un singur loc și apare automat în amândouă.
+
+  De ce nu direct în cod
+
+  Trei motive, în ordinea importanței:
+
+  1. Secretele. Dacă scriai 'test' direct în RcaClient, parola intra în Git.
+     Prin .env → config, nu intră.
+  2. config:cache. În producție rulezi php artisan config:cache, care
+     serializează tot config/ o dată, la deploy. De aia env() are voie să apară
+     doar în config/ — în orice altă parte a codului, după cache, env() întoarce
+     null. E capcana clasică în Laravel.
+  3. Un singur loc de modificat. Lista de 11 asigurători apare azi în config; ar
+     fi apărut altfel în serviciu, în formular și în pagina de rezultate.
+
+  ---
+
+  Ai rulat verificarea și e OK (11 provideri, test, base URL corect). Spune-mi
+  „gata" și trecem la Pasul 3 — migrările api_logs și audit_events, adică
+  infrastructura de trasabilitate, pe care o punem înainte de primul apel real
+  ca să avem unde scrie de la bun început.
+
+✻ Cooked for 57s · done 11:15 PM
+
+❯ gata                                                                          
+
+  Ran 1 shell command (ctrl+o to expand)
+
+⏺ Perfect.
+
+  Pasul 3 — Infrastructura de trasabilitate
+
+  Ce facem și de ce
+
+  Construim întâi tabelele de urmă, înainte de orice apel real la API. Motivul e
+  practic: dacă le lăsăm la final, primele zeci de apeluri de dezvoltare —
+  exact cele în care apar erorile interesante — nu se înregistrează nicăieri, și
+  tocmai atunci ai nevoie de ele.
+
+  Două tabele, cu rosturi diferite, ușor de confundat:
+
+  ┌───────────────┬──────────────────────┬─────────────────────────────────┐
+  │               │     audit_events     │            api_logs             │
+  ├───────────────┼──────────────────────┼─────────────────────────────────┤
+  │ Răspunde la   │ Ce a făcut omul?     │ Ce a plecat spre asigurători?   │
+  ├───────────────┼──────────────────────┼─────────────────────────────────┤
+  │ Exemplu       │ „userul 4 a cerut o  │ „POST /offer către omniasig →   │
+  │               │ ofertă"              │ 200 în 1.842 ms"                │
+  ├───────────────┼──────────────────────┼─────────────────────────────────┤
+  │ O acțiune     │ 1 rând               │ 11 rânduri                      │
+  │ produce       │                      │                                 │
+  └───────────────┴──────────────────────┴─────────────────────────────────┘
+
+  Le leagă un correlation_id: un UUID generat o singură dată per acțiune web. Un
+  click pe „Calculează" → 1 audit_event + 11 api_logs, toate cu același UUID.
+  Așa poți reconstitui exact ce a introdus omul și ce a plecat spre fiecare
+  asigurător.
+
+  ---
+
+  Fișierul 1 — migrarea api_logs
+
+  Generează-l cu:
+
+  php artisan make:migration create_api_logs_table
+
+  Apoi înlocuiește tot conținutul fișierului creat în database/migrations/:
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('api_logs', function (Blueprint $table) {
+              $table->id();
+
+              // Leaga toate apelurile facute in cadrul aceleiasi actiuni din 
+  Web.
+              $table->uuid('correlation_id')->index();
+
+              // Deliberat FARA ->constrained(): un log nu trebuie sa depinda de
+              // existenta randurilor pe care le descrie. Vezi explicatia de mai
+  jos.
+              $table->foreignId('user_id')->nullable()->index();
+              $table->foreignId('quote_request_id')->nullable()->index();
+
+              // Asiguratorul pentru care s-a facut apelul.
+              // Null la apelurile care nu tin de un asigurator: /auth, 
+  /nomenclature.
+              $table->string('provider')->nullable()->index();
+
+              $table->string('method', 10);
+              $table->text('url');
+
+              $table->json('request_headers')->nullable();
+              $table->json('request_body')->nullable();
+
+              $table->unsignedSmallInteger('response_status')->nullable();
+              $table->json('response_body')->nullable();
+
+              // Cat a durat apelul. Null daca s-a rupt conexiunea inainte de 
+  raspuns.
+              $table->unsignedInteger('duration_ms')->nullable();
+
+              // Mesajul exceptiei, cand apelul nu a ajuns niciodata la un 
+  raspuns HTTP.
+              $table->text('error')->nullable();
+
+              $table->string('ip', 45)->nullable();
+
+              $table->timestamp('created_at')->nullable()->index();
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('api_logs');
+      }
+  };
+
+  ---
+
+  Fișierul 2 — migrarea audit_events
+
+  php artisan make:migration create_audit_events_table
+
+  <?php
+
+  use Illuminate\Database\Migrations\Migration;
+  use Illuminate\Database\Schema\Blueprint;
+  use Illuminate\Support\Facades\Schema;
+
+  return new class extends Migration
+  {
+      public function up(): void
+      {
+          Schema::create('audit_events', function (Blueprint $table) {
+              $table->id();
+
+              $table->uuid('correlation_id')->nullable()->index();
+              $table->foreignId('user_id')->nullable()->index();
+              $table->string('session_id')->nullable();
+
+              // Ex: user.registered, quote.requested, policy.issued, 
+  pdf.downloaded
+              $table->string('event')->index();
+
+              // Obiectul asupra caruia s-a actionat, oricare ar fi modelul lui.
+              $table->string('subject_type')->nullable();
+              $table->unsignedBigInteger('subject_id')->nullable();
+
+              $table->json('payload')->nullable();
+
+              $table->string('ip', 45)->nullable();
+              $table->text('user_agent')->nullable();
+
+              $table->timestamp('created_at')->nullable()->index();
+
+              $table->index(['subject_type', 'subject_id']);
+          });
+      }
+
+      public function down(): void
+      {
+          Schema::dropIfExists('audit_events');
+      }
+  };
+
+  ---
+
+  Fișierul 3 — app/Support/Correlation.php
+
+  Creează directorul app/Support/ și în el fișierul:
+
+  <?php
+
+  namespace App\Support;
+
+  use Illuminate\Support\Str;
+
+  /**
+   * Identificatorul unic al actiunii curente.
+   *
+   * Un singur UUID pentru tot ce se intampla intr-un request web: randul din
+   * audit_events si toate randurile din api_logs primesc aceeasi valoare.
+   */
+  final class Correlation
+  {
+      private static ?string $id = null;
+
+      public static function id(): string
+      {
+          return self::$id ??= (string) Str::uuid();
+      }
+
+      /** Folosit in teste, ca fiecare test sa porneasca de la zero. */
+      public static function reset(): void
+      {
+          self::$id = null;
+      }
+  }
+
+  ---
+
+  Fișierul 4 — app/Models/ApiLog.php
+
+  php artisan make:model ApiLog
+
+  <?php
+
+  namespace App\Models;
+
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Model;
+
+  #[Fillable([
+      'correlation_id',
+      'user_id',
+      'quote_request_id',
+      'provider',
+      'method',
+      'url',
+      'request_headers',
+      'request_body',
+      'response_status',
+      'response_body',
+      'duration_ms',
+      'error',
+      'ip',
+  ])]
+  class ApiLog extends Model
+  {
+      /** Un log nu se modifica niciodata dupa ce a fost scris. */
+      const UPDATED_AT = null;
+
+      protected function casts(): array
+      {
+          return [
+              'request_headers' => 'array',
+              'request_body'    => 'array',
+              'response_body'   => 'array',
+              'created_at'      => 'datetime',
+          ];
+      }
+  }
+
+  ---
+
+  Fișierul 5 — app/Models/AuditEvent.php
+
+  php artisan make:model AuditEvent
+
+  <?php
+
+  namespace App\Models;
+
+  use App\Support\Correlation;
+  use Illuminate\Database\Eloquent\Attributes\Fillable;
+  use Illuminate\Database\Eloquent\Model;
+  use Illuminate\Support\Facades\Auth;
+
+  #[Fillable([
+      'correlation_id',
+      'user_id',
+      'session_id',
+      'event',
+      'subject_type',
+      'subject_id',
+      'payload',
+      'ip',
+      'user_agent',
+  ])]
+  class AuditEvent extends Model
+  {
+      const UPDATED_AT = null;
+
+      protected function casts(): array
+      {
+          return [
+              'payload'    => 'array',
+              'created_at' => 'datetime',
+          ];
+      }
+
+      /**
+       * Inregistreaza o actiune a utilizatorului.
+       *
+       * Contextul (cine, de unde, cu ce sesiune) se completeaza singur, ca sa 
+  nu
+       * fie nevoie sa-l repeti in fiecare controller.
+       */
+      public static function record(string $event, ?Model $subject = null, array
+  $payload = []): self
+      {
+          $request = request();
+
+          return static::create([
+              'correlation_id' => Correlation::id(),
+              'user_id'        => Auth::id(),
+              'session_id'     => $request->hasSession() ?
+  $request->session()->getId() : null,
+              'event'          => $event,
+              'subject_type'   => $subject?->getMorphClass(),
+              'subject_id'     => $subject?->getKey(),
+              'payload'        => $payload ?: null,
+              'ip'             => $request->ip(),
+              'user_agent'     => $request->userAgent(),
+          ]);
+      }
+  }
+
+  ---
+
+  Explicația pe bucăți
+
+  De ce foreignId() fără ->constrained(). foreignId() creează doar coloana
+  unsigned big integer; abia ->constrained() ar adăuga cheia străină reală. Am
+  omis-o intenționat, din trei motive:
+
+  1. Un log trebuie să supraviețuiască obiectului pe care îl descrie. Dacă
+     ștergi un user, urma acțiunilor lui nu trebuie să dispară odată cu el —
+     altfel trasabilitatea e exact atât de solidă cât e cel mai neatent delete()
+     din aplicație.
+  2. Ordinea migrărilor. api_logs se creează acum, quote_requests abia în
+     Pasul 4. O cheie străină către un tabel inexistent ar face migrarea să
+     crape.
+  3. Un log nu are voie să arunce excepții. Cu constrângere activă, o scriere de
+     log ar putea eșua și ar rupe exact funcționalitatea pe care încerca s-o
+     înregistreze.
+
+  const UPDATED_AT = null; Laravel gestionează automat două coloane de timp.
+  Aici avem una singură, pentru că un log e append-only — nu există „ultima
+  modificare" a unui eveniment din trecut. Constanta asta îi spune lui Eloquent
+  să nu mai caute updated_at. De asta în migrare am scris
+  $table->timestamp('created_at') în loc de $table->timestamps().
+
+  De ce json și nu text pentru corpuri. Cu castul 'array', citești
+  $log->request_body['product']['vehicle']['vin'] direct, ca pe un array PHP. Cu
+  text ai primi un string și ar trebui să faci json_decode de fiecare dată.
+
+  ⚠️ Capcana pe care o ține minte pentru Pasul 7: răspunsurile de la GET 
+  /policy/{id} conțin PDF-ul întreg codat base64 — megabytes de text. Dacă le
+  scriem ca atare, baza SQLite se umflă în câteva zile. În RcaClient vom înlocui
+  conținutul mare cu un marcaj {"_truncated": true, "bytes": 1234567} — încă
+  JSON valid, deci castul 'array' continuă să funcționeze.
+
+  De ce Correlation are o proprietate statică. Un proces PHP servește un singur
+  request, apoi moare — deci „static" înseamnă de fapt „pe durata acestui
+  request". E cea mai simplă unealtă care rezolvă problema. (Singura excepție ar
+  fi Laravel Octane, unde procesul e reutilizat între request-uri; acolo ar 
+  trebui înlocuit cu un singleton resetat de framework. Nu e cazul nostru.)
+
+  subject_type / subject_id în loc de coloane separate. Auditul trebuie să
+  acopere obiecte de tipuri diferite: o cerere de ofertă, o poliță, un profil.
+  Perechea asta e convenția Laravel pentru relații polimorfice, deci record()
+  primește orice model și se descurcă. getMorphClass() (nu ::class) e folosit
+  intenționat, ca să respecte eventualele aliasuri de morph map.
+
+  De ce record() stă pe model. Fără el, fiecare controller ar repeta 9 linii de
+  context. Așa, o acțiune se înregistrează într-o linie:
+  AuditEvent::record('policy.issued', $policy);
+
+  ---
+
+  Cum verifici
+
+  php artisan migrate
+  php artisan tinker --execute="
+  \App\Models\AuditEvent::record('test.event', null, ['nota' => 'verificare pas 
+  3']);
+  \$e = \App\Models\AuditEvent::latest('id')->first();
+  dump(\$e->event, \$e->payload, \$e->correlation_id, 
+  \$e->created_at?->toDateTimeString());
+  dump('coloane api_logs: '.implode(', ', 
+  \Illuminate\Support\Facades\Schema::getColumnListing('api_logs')));
+  "
+
+  Trebuie să vezi "test.event", array-ul ['nota' => 'verificare pas 3'], un
+  UUID, o dată — și lista de 14 coloane din api_logs.
+
+  Apoi curăță rândul de test:
+
+  php artisan tinker
+  --execute="\App\Models\AuditEvent::where('event','test.event')->delete();"
+
+  Zi-mi „gata" și mergem la Pasul 4 — tabelele de business (quote_requests,
+  provider_quotes, offers, policies), unde intră efectiv datele introduse în
+  formular.
+
+✻ Cogitated for 2m 15s · done 11:30 PM
