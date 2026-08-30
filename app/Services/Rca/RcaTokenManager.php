@@ -29,29 +29,29 @@ class RcaTokenManager
 
     public function token(): string
     {
-        $bundle = Cache::get(self::CACHE_KEY);
+        $bundle = Cache::get(self::CACHE_KEY); // Bundle e pachetul salvat in cache: token, refresh token, data expirarii. Poate sa fie null daca e prima rulare sau a expirat.
 
-        if (is_array($bundle) && $this->stillValid($bundle)) {
+        if (is_array($bundle) && $this->stillValid($bundle)) { // Am deja un tocket bun
             return $bundle['token'];
         }
 
-        if (is_array($bundle) && ! empty($bundle['refresh_token'])) {
+        if (is_array($bundle) && ! empty($bundle['refresh_token'])) { // A expirat dar il pot reinnoi
             if ($renewed = $this->renew($bundle)) {
                 return $renewed['token'];
             }
         }
 
-        return $this->authenticate()['token'];
+        return $this->authenticate()['token']; // Facem tokenul de la zero cu authentificare
     }
 
     /** Apelata cand API-ul raspunde 401, ca urmatorul apel sa ceara token
     nou. */
-    public function forget(): void
+    public function forget(): void // Sterge pachetul din cache, urmatorul apel la token() va gasi null si merge direct la autentificare
     {
         Cache::forget(self::CACHE_KEY);
     }
 
-    private function authenticate(): array
+    private function authenticate(): array // Construieste credentialele in query string, apoi face POST
     {
         $url = $this->url().'?'.http_build_query([
                 'account'  => config('rca.account'),
@@ -61,7 +61,7 @@ class RcaTokenManager
         return $this->store($this->call('POST', $url));
     }
 
-    private function renew(array $bundle): ?array
+    private function renew(array $bundle): ?array // PATCH in loc de POST - actualizezi o sesiune existenta, nu creezi una noua
     {
         try {
             return $this->store($this->call(
@@ -76,7 +76,7 @@ class RcaTokenManager
           }
     }
 
-    private function call(string $method, string $url, array $payload = [], array $headers = []): array
+    private function call(string $method, string $url, array $payload = [], array $headers = []): array // Metoda face un apel HTTP si il logheaza indiferent de rezultat
     {
         $started = hrtime(true);
 
@@ -117,7 +117,7 @@ class RcaTokenManager
         return $body['data'];
     }
 
-    private function store(array $data): array
+    private function store(array $data): array // Metoda ia raspunsul brut de la API, pastreaza doar ce trebuie si pune in cache
     {
         $bundle = [
             'token'         => $data['token'],
@@ -130,12 +130,12 @@ class RcaTokenManager
         return $bundle;
     }
 
-    private function stillValid(array $bundle): bool
+    private function stillValid(array $bundle): bool // verifica daca mai e valid token-ul
     {
         return ! empty($bundle['token']) && ! empty($bundle['expires_at']) && Carbon::parse($bundle['expires_at'])->subSeconds(self::SAFETY_MARGIN)->isFuture();
     }
 
-    private function expiresAt(array $data): ?Carbon
+    private function expiresAt(array $data): ?Carbon // Afla cand expira token-ul
     {
         // Sursa preferata: claim-ul 'exp' din JWT - epoch UTC, fara ambiguitati.
           if (! empty($data['token']) && $exp = $this->expiryFromJwt($data['token'])) {
@@ -146,7 +146,7 @@ class RcaTokenManager
           return ! empty($data['expires_at']) ? Carbon::parse($data['expires_at'], 'Europe/Bucharest') : null;
     }
 
-    private function expiryFromJwt(string $jwt): ?Carbon
+    private function expiryFromJwt(string $jwt): ?Carbon // Deschide JWT-ul ssi citeste claim-ul exp din el
     {
         $parts = explode('.', $jwt);
 
@@ -159,7 +159,7 @@ class RcaTokenManager
         return isset($payload['exp']) ? Carbon::createFromTimestamp((int) $payload['exp'], 'UTC') : null;
     }
 
-    private function http(): PendingRequest
+    private function http(): PendingRequest // Configureaza cererea HTTP si ti-o da, dar netrimisa
     {
         return Http::asJson()
             ->acceptJson()
@@ -168,12 +168,12 @@ class RcaTokenManager
             ->connectTimeout(config('rca.connect_timeout'));
     }
 
-    private function url(): string
+    private function url(): string // Compune adresa endpoint-ului /auth
     {
         return rtrim(config('rca.base_url'), '/').'/auth';
     }
 
-    private function elapsed(int|float $started): int
+    private function elapsed(int|float $started): int // Calculeaza cate milisecunde a durat un apel
     {
         return (int) round((hrtime(true) - $started) / 1_000_000);
     }
