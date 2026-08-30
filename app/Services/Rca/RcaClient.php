@@ -6,6 +6,8 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Throwable;
+use GuzzleHttp\TransferStats;
+use Illuminate\Http\Client\Pool;
 
 /**
  * Punctul unic prin care trec toate apelurile catre API-ul RCA,
@@ -31,6 +33,112 @@ class RcaClient
     {
         return $this->call('POST', $path, payload: $payload, provider: $provider, quoteRequestId:
             $quoteRequestId);
+    }
+
+    /**
+     * Trimite mai multe apeluri simultan.
+     *
+     * @param  array<string, array{path: string, payload: array}>  $calls
+     * @return array<string, RcaPoolResult>  aceleasi chei ca $calls
+     */
+    public function pool(array $calls, ?int $quoteRequestId = null): array
+    {
+        // Un singur token pentru toate apelurile: altfel s-ar autentifica fiecare separat.
+        $headers = $this->headers();
+
+        $durations = [];
+
+        $responses = Http::pool(function (Pool $pool) use ($calls, $headers, &$durations) {
+            foreach ($calls as $key => $call) {
+                $pool->as($key)
+                    ->asJson()
+                    ->acceptJson()
+                    ->withHeaders($headers)
+                    ->timeout(config('rca.timeout'))
+                    ->connectTimeout(config('rca.connect_timeout'))
+                    // Singurul mod de a sti cat a durat fiecare apel in parte.
+                    ->withOptions(['on_stats' => function (TransferStats $stats) use (&$durations, $key) {
+                        $durations[$key] = (int) round($stats->getTransferTime() * 1000);
+                    }])
+                    ->post($this->url($call['path']), $call['payload']);
+            }
+        });
+
+        $results = [];
+        $sawUnauthorized = false;
+
+        foreach ($calls as $key => $call) {
+            $results[$key] = $this->interpret(
+                $key,
+                $call,
+                $responses[$key] ?? null,
+                $headers,
+                $durations[$key] ?? 0,
+                $quoteRequestId,
+            );
+
+            $sawUnauthorized = $sawUnauthorized || $results[$key]->httpStatus === 401;
+        }
+
+        // Nu reincercam intreg pool-ul, dar aruncam tokenul ca urmatoarea cerere sa ia unul nou.
+        if ($sawUnauthorized) {
+            $this->tokens->forget();
+        }
+
+        return $results;
+    }
+
+    /**
+     * Transforma raspunsul brut (Response sau exceptie) intr-un RcaPoolResult si il logheaza.
+     */
+    private function interpret(
+        string $key,
+        array $call,
+        mixed $response,
+        array $headers,
+        int $durationMs,
+        ?int $quoteRequestId,
+    ): RcaPoolResult {
+        $url = $this->url($call['path']);
+
+        // Http::pool nu arunca exceptiile: le pune in array in locul raspunsului.
+        if ($response instanceof Throwable) {
+            $this->logger->log(
+                method: 'POST',
+                url: $url,
+                requestHeaders: $headers,
+                requestBody: $call['payload'],
+                durationMs: $durationMs,
+                error: $response->getMessage(),
+                provider: $key,
+                quoteRequestId: $quoteRequestId,
+            );
+
+            return new RcaPoolResult($key, false, error: 'Serviciul nu a raspuns: '.$response->getMessage(),
+                durationMs: $durationMs);
+        }
+
+        $this->logger->log(
+            method: 'POST',
+            url: $url,
+            requestHeaders: $headers,
+            requestBody: $call['payload'],
+            responseStatus: $response->status(),
+            responseBody: $response->json() ?? $response->body(),
+            durationMs: $durationMs,
+            provider: $key,
+            quoteRequestId: $quoteRequestId,
+        );
+
+        try {
+            $data = $this->unwrap($response, $key);
+        } catch (RcaException $e) {
+            return new RcaPoolResult($key, false, error: $e->getMessage(), httpStatus: $e->httpStatus, durationMs:
+                $durationMs);
+        }
+
+        return new RcaPoolResult($key, true, data: $data, httpStatus: $response->status(), durationMs:
+            $durationMs);
     }
 
     private function call(
