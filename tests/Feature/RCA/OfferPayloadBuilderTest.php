@@ -241,4 +241,10 @@ class OfferPayloadBuilderTest extends TestCase
             ],
         ];
     }
+
+    /** Refolosit de OfferServiceTest. */
+    public static function datePentruTeste(): array
+    {
+        return (new self)->input();
+    }
 }
