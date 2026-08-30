@@ -4,6 +4,9 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/* cand utilizatorul apeleaza "calculeaza", exista un rand in quote_requests, dar aplicatia face apeluri separate catre
+ * Omniasig, Groupama, Allianz. Fiecare apel poate merge sau poate crapa independent. provider_quotes inregistreaza rezultatul fiecarui apel
+ */
 return new class extends Migration
 {
     /**
