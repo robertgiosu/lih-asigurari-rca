@@ -4,6 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+// Asta e o oferta concreta de la un asigurator. E tabelul pe care il afisezi utilizatorului sortat dupa premium_amount.
 return new class extends Migration
 {
     /**
