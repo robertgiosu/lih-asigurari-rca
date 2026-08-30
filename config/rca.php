@@ -77,12 +77,12 @@ return [
 
         'generali' => [
             'label' => 'Generali',
-            'extra' => ['pti', 'bonus_malus_prev'],
+            'extra' => ['pti'],
         ],
 
         'grawe' => [
             'label' => 'Grawe',
-            'extra' => ['bonus_malus_prev', 'bonus_malus_current'],
+            'extra' => ['pti', 'bonus_malus_prev', 'bonus_malus_current'],
         ],
 
         'groupama' => [
