@@ -6,11 +6,12 @@ use App\Models\County;
 use App\Models\Locality;
 use App\Services\Rca\OfferPayloadBuilder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\Concerns\ProvidesQuoteInput;
 use Tests\TestCase;
 
 class OfferPayloadBuilderTest extends TestCase
 {
-    use RefreshDatabase;
+    use ProvidesQuoteInput, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -24,7 +25,7 @@ class OfferPayloadBuilderTest extends TestCase
     public function test_reproduce_exact_payload_ul_allianz_din_documentatie(): void
     {
         $payload = app(OfferPayloadBuilder::class)->build('allianz',
-            $this->input());
+            $this->quoteInput());
 
         $this->assertEquals([
             'provider' => [
@@ -106,7 +107,7 @@ class OfferPayloadBuilderTest extends TestCase
     public function test_fiecare_asigurator_primeste_additional_data_specific(): void
     {
         $builder = app(OfferPayloadBuilder::class);
-        $input = $this->input();
+        $input = $this->quoteInput();
 
         // Generali: doar data ITP.
         $this->assertSame(
@@ -135,10 +136,10 @@ class OfferPayloadBuilderTest extends TestCase
     {
         $builder = app(OfferPayloadBuilder::class);
 
-        $fara = $builder->build('axeria', $this->input());
+        $fara = $builder->build('axeria', $this->quoteInput());
         $this->assertArrayNotHasKey('renewPolicy', $fara['product']['motor']);
 
-        $input = $this->input();
+        $input = $this->quoteInput();
         $input['motor']['renewPolicy'] = ['series' => 'RO/01/AA', 'number' =>
             '123456789'];
 
@@ -149,7 +150,7 @@ class OfferPayloadBuilderTest extends TestCase
 
     public function test_soferul_poate_fi_o_alta_persoana_decat_asiguratul(): void
     {
-        $input = $this->input();
+        $input = $this->quoteInput();
         $input['options']['driverIsPolicyholder'] = false;
         $input['driver'] = [
             'lastName' => 'Pop',
@@ -168,7 +169,7 @@ class OfferPayloadBuilderTest extends TestCase
 
     public function test_campurile_optionale_goale_nu_ajung_in_payload(): void
     {
-        $input = $this->input();
+        $input = $this->quoteInput();
         $input['policyholder']['address']['building'] = '';
         $input['policyholder']['address']['apartment'] = null;
 
@@ -177,74 +178,5 @@ class OfferPayloadBuilderTest extends TestCase
 
         $this->assertArrayNotHasKey('building', $adresa);
         $this->assertArrayNotHasKey('apartment', $adresa);
-    }
-
-    /** Datele reale din cerinta, in forma pe care o va trimite formularul. */
-    private function input(): array
-    {
-        return [
-            'motor' => [
-                'startDate' => '2026-09-15',
-                'termTime' => 12,
-                'installmentCount' => 1,
-            ],
-            'policyholder' => [
-                'lastName' => 'Giosu',
-                'firstName' => 'Robert',
-                'taxId' => '5050518020094',
-                'gender' => 'm',
-                'birthdate' => '2005-05-18',
-                'email' => 'robertgiosu@email.com',
-                'mobileNumber' => '0744444444',
-                'identification' => [
-                    'idType' => 'CI',
-                    'idNumber' => 'ZR088130',
-                    'issueAuthority' => 'SPCLEP Arad',
-                    'issueDate' => '2023-05-23',
-                ],
-                'drivingLicense' => ['issueDate' => '2023-10-13'],
-                'address' => [
-                    'county' => 'AR',
-                    'city' => 'ARAD',
-                    'street' => 'Coriolan Petreanu',
-                    'houseNumber' => '38',
-                    'postcode' => '310151',
-                ],
-                'hasDisability' => false,
-                'isRetired' => false,
-            ],
-            'vehicle' => [
-                'licensePlate' => 'AR08WSX',
-                'registrationType' => 'registered',
-                'vin' => 'WVWZZZ1KZ8W006165',
-                'vehicleType' => 'M1',
-                'brand' => 'Volkswagen',
-                'model' => 'Golf',
-                'yearOfConstruction' => 2008,
-                'engineDisplacement' => 1896,
-                'enginePower' => 77,
-                'totalWeight' => 1920,
-                'seats' => 5,
-                'fuelType' => 'diesel',
-                'firstRegistration' => '2008-03-06',
-                'usageType' => 'personal',
-                'identification' => ['idNumber' => 'G205791'],
-                'currentMileage' => 226000,
-                'hasMobilityModifications' => false,
-                'isLeased' => false,
-                'isNew' => false,
-            ],
-            'options' => [
-                'driverIsPolicyholder' => true,
-                'expirationDatePti' => '2026-08-26',
-                'bonusMalusClass' => 'B0',
-            ],
-        ];
-    }
-
-    /** Refolosit de OfferServiceTest. */
-    public static function datePentruTeste(): array
-    {
-        return (new self)->input();
     }
 }

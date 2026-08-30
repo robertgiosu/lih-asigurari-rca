@@ -67,8 +67,10 @@ class OfferService
             'input'             => $input,
             'status'            => 'pending',
             'license_plate'     => $input['vehicle']['licensePlate'] ?? null,
-            'policyholder_name' => trim(($input['policyholder']['lastName'] ?? '').'
-  '.($input['policyholder']['firstName'] ?? '')),
+            'policyholder_name' => trim(implode(' ', array_filter([
+                $input['policyholder']['lastName'] ?? null,
+                $input['policyholder']['firstName'] ?? null,
+            ]))),
             'start_date'        => $input['motor']['startDate'] ?? null,
             'ip'                => $request->ip(),
             'user_agent'        => $request->userAgent(),

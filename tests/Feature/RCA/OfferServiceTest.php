@@ -1,6 +1,6 @@
 <?php
 
-namespace Feature\RCA;
+namespace Tests\Feature\Rca;
 
 use App\Models\ApiLog;
 use App\Models\AuditEvent;
@@ -12,11 +12,12 @@ use App\Support\Correlation;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Tests\Concerns\FakesRcaAuth;
+use Tests\Concerns\ProvidesQuoteInput;
 use Tests\TestCase;
 
 class OfferServiceTest extends TestCase
 {
-    use FakesRcaAuth, RefreshDatabase;
+    use FakesRcaAuth, ProvidesQuoteInput, RefreshDatabase;
 
     protected function setUp(): void
     {
@@ -73,7 +74,7 @@ class OfferServiceTest extends TestCase
     public function
     test_interogheaza_toti_asiguratorii_si_salveaza_rezultatele(): void
     {
-        $quoteRequest = app(OfferService::class)->quote($this->input());
+        $quoteRequest = app(OfferService::class)->quote($this->quoteInput());
 
         $this->assertSame('completed', $quoteRequest->status);
         $this->assertSame('AR08WSX', $quoteRequest->license_plate);
@@ -86,7 +87,7 @@ class OfferServiceTest extends TestCase
 
     public function test_caderea_unui_asigurator_nu_afecteaza_restul(): void
     {
-        $quoteRequest = app(OfferService::class)->quote($this->input());
+        $quoteRequest = app(OfferService::class)->quote($this->quoteInput());
 
         $dallbogg = $quoteRequest->providerQuotes()->where('provider',
             'dallbogg')->sole();
@@ -104,7 +105,7 @@ class OfferServiceTest extends TestCase
     public function test_datele_introduse_se_salveaza_inainte_de_apeluri():
     void
     {
-        $quoteRequest = app(OfferService::class)->quote($this->input());
+        $quoteRequest = app(OfferService::class)->quote($this->quoteInput());
 
         // Formularul complet, exact cum a fost trimis.
         $this->assertSame('WVWZZZ1KZ8W006165',
@@ -120,7 +121,7 @@ class OfferServiceTest extends TestCase
 
     public function test_fiecare_apel_lasa_urma_in_api_logs_cu_asiguratorul_lui(): void
     {
-        $quoteRequest = app(OfferService::class)->quote($this->input());
+        $quoteRequest = app(OfferService::class)->quote($this->quoteInput());
 
         $loguri = ApiLog::whereNotNull('provider')->get();
 
@@ -136,7 +137,7 @@ class OfferServiceTest extends TestCase
 
     public function test_oferta_se_salveaza_cu_toate_campurile(): void
     {
-        app(OfferService::class)->quote($this->input());
+        app(OfferService::class)->quote($this->quoteInput());
 
         $offer = Offer::where('provider', 'axeria')->sole();
 
@@ -145,10 +146,5 @@ class OfferServiceTest extends TestCase
         $this->assertSame('2026-09-15', $offer->start_date->toDateString());
         $this->assertSame(2211.49, $offer->installments[0]['amount']);
         $this->assertSame('COD-axeria', $offer->raw['providerOfferCode']);
-    }
-
-    private function input(): array
-    {
-        return OfferPayloadBuilderTest::datePentruTeste();
     }
 }
