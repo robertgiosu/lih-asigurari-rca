@@ -17,10 +17,14 @@ return new class extends Migration
             // Legatura catre counties.code. Fara cheie straina - vezi explicatia.
             $table->string('county_code', 2)->index();
 
-            // 'nume' de la API. Se trimite ca atare in address.city.
+            // 'name' de la API. Se trimite ca atare in address.city.
             $table->string('name')->index();
 
-            // 'cod_siruta' de la API. Se trimite ca address.cityCode.
+            // 'rang' de la API: 1=Bucuresti, 2=municipiu, 3=oras, 4=comuna, 5=sat.
+            // Il folosim ca sa afisam intai localitatile mari in dropdown.
+            $table->unsignedTinyInteger('rang')->nullable();
+
+            // 'siruta' de la API. Se trimite ca address.cityCode.
             $table->unsignedInteger('siruta')->index();
 
             $table->timestamps();

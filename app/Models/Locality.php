@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 
-#[Fillable(['county_code', 'name', 'siruta'])]
+#[Fillable(['county_code', 'name', 'rang', 'siruta'])]
 class Locality extends Model
 {
     public function county(): BelongsTo
