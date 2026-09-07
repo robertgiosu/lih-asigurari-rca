@@ -50,4 +50,26 @@ Alpine.data('adresa', (initial = {}) => ({
     },
 }));
 
+/**
+ * Overlay-ul afisat cat timp se interogheaza asiguratorii.
+ * Formularul se trimite normal, prin POST; noi doar aratam ce se
+ intampla.
+ */
+Alpine.data('formularOferta', (asiguratori = []) => ({
+    asiguratori,
+    seTrimite: false,
+    secunde: 0,
+
+    porneste(event) {
+        // Al doilea click ar declansa inca 11 apeluri catre asiguratori.
+        if (this.seTrimite) {
+            event.preventDefault();
+            return;
+        }
+
+        this.seTrimite = true;
+        setInterval(() => this.secunde++, 1000);
+    },
+}));
+
 Alpine.start();

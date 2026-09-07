@@ -4,13 +4,20 @@
 
 @section('content')
 
-    <div class="mb-6">
-        <h1 class="text-2xl font-semibold tracking-tight">Calculează
-            prețul RCA</h1>
-        <p class="mt-1 text-sm text-slate-600">
-            Completează datele o singură dată și primești oferte de la
-            toți asigurătorii disponibili.
-        </p>
+    <div class="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-semibold tracking-tight">Calculează prețul RCA</h1>
+            <p class="mt-1 text-sm text-slate-600">
+                Completează datele o singură dată și primești oferte de la toți asigurătorii disponibili.
+            </p>
+        </div>
+
+        @if(app()->environment('local'))
+            <a href="{{ route('oferta.create', ['demo' => 1]) }}"
+               class="shrink-0 rounded-lg border border-dashed border-amber-400 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100">
+                Completează cu date de test
+            </a>
+        @endif
     </div>
 
     @if($errors->any())
@@ -25,8 +32,9 @@
         </div>
     @endif
 
-    <form method="POST" action="{{ route('oferta.store') }}"
-          class="space-y-6">
+    <form method="POST" action="{{ route('oferta.store') }}" class="space-y-6"
+          x-data="formularOferta(@js(collect(config('rca.providers'))->pluck('label')->values()))"
+          @submit="porneste($event)">
     @csrf
 
         <x-section title="Polița" description="Perioada pentru care
@@ -130,8 +138,7 @@ $errors->has('policyholder.address.county'),
                         ])>
                         <option value="">Alege județul</option>
                         @foreach($counties as $county)
-                            <option value="{{ $county->code }}">{{
-  $county->displayName() }}</option>
+                            <option value="{{ $county->code }}" @selected(old('policyholder.address.county') === $county->code)>{{ $county->displayName() }}</option>
                         @endforeach
                     </select>
                     @error('policyholder.address.county')
@@ -273,19 +280,48 @@ $errors->has('policyholder.address.city'),
                 </div>
             </div>
         </x-section>
-        <div class="flex items-center justify-between rounded-xl border
-  border-slate-200 bg-white p-6 shadow-sm">
+        <div class="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <p class="text-sm text-slate-600">
-                Interogăm {{ count(config('rca.providers')) }}
-                asigurători. Poate dura până la 30 de secunde.
+                Interogăm {{ count(config('rca.providers')) }} asigurători. Poate dura până la 30 de secunde.
             </p>
-            <button type="submit"
-                    class="rounded-lg bg-sky-600 px-6 py-3 text-sm
-  font-semibold text-white shadow-sm transition hover:bg-sky-700
-  focus:outline-none focus:ring-2 focus:ring-sky-300">
-                Calculează prețul
+            <button type="submit" :disabled="seTrimite"
+                    class="rounded-lg bg-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-300 disabled:cursor-not-allowed disabled:bg-slate-400">
+                <span x-show="! seTrimite">Calculează prețul</span>
+                <span x-show="seTrimite" x-cloak>Se calculează...</span>
             </button>
         </div>
+
+        <div x-show="seTrimite" x-cloak
+             class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/70 p-4 backdrop-blur-sm">
+            <div class="w-full max-w-md rounded-2xl bg-white p-8 text-center shadow-2xl">
+
+                <svg class="mx-auto h-10 w-10 animate-spin text-sky-600" viewBox="0 0 24 24" fill="none">
+                    <circle class="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                    <path class="opacity-90" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"/>
+                </svg>
+
+                <h2 class="mt-5 text-lg font-semibold text-slate-900">Căutăm cele mai bune prețuri</h2>
+
+                <p class="mt-1 text-sm text-slate-500">
+                    Interogăm <span x-text="asiguratori.length"></span> asigurători în paralel.
+                </p>
+
+                <ul class="mt-5 flex flex-wrap justify-center gap-1.5">
+                    <template x-for="asigurator in asiguratori" :key="asigurator">
+                        <li x-text="asigurator" class="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600"></li>
+                    </template>
+                </ul>
+
+                <p class="mt-6 font-mono text-2xl tabular-nums text-slate-900">
+                    <span x-text="secunde"></span><span class="text-base text-slate-400">s</span>
+                </p>
+
+                <p x-show="secunde > 20" x-cloak class="mt-2 text-xs text-slate-500">
+                    Unii asigurători răspund mai greu. Nu închide pagina.
+                </p>
+            </div>
+        </div>
+
     </form>
 
 @endsection
