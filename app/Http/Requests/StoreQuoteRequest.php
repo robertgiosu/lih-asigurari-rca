@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Contracts\Validation\ValidationRule;
+use App\Models\Locality;
+use App\Rules\Cnp;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreQuoteRequest extends FormRequest
 {
@@ -17,7 +20,7 @@ class StoreQuoteRequest extends FormRequest
      * Browserul nu trimite deloc checkbox-urile nebifate, deci le completam
      * explicit; tot aici normalizam valorile pe care asiguratorii le vor majuscule.
      */
-    protected function prepareForValidation(): void // face normalizare a datelor (trim-uri, etc.)
+    protected function prepareForValidation(): void
     {
         $policyholder = $this->input('policyholder', []);
         $vehicle      = $this->input('vehicle', []);
@@ -38,8 +41,7 @@ class StoreQuoteRequest extends FormRequest
         }
 
         if (isset($vehicle['licensePlate'])) {
-            $vehicle['licensePlate'] = strtoupper(preg_replace('/\s+/', '',
-                $vehicle['licensePlate']));
+            $vehicle['licensePlate'] = strtoupper(preg_replace('/\s+/', '', $vehicle['licensePlate']));
         }
 
         $this->merge(compact('policyholder', 'vehicle', 'options'));
@@ -54,33 +56,28 @@ class StoreQuoteRequest extends FormRequest
             'motor.startDate'          => ['required', 'date_format:Y-m-d', 'after_or_equal:today'],
             'motor.termTime'           => ['required', 'integer', 'min:1', 'max:12'],
             'motor.installmentCount'   => ['required', $enum('installment_count')],
-            'motor.renewPolicy.series' => ['nullable', 'string', 'max:30',
-                'required_with:motor.renewPolicy.number'],
-            'motor.renewPolicy.number' => ['nullable', 'string', 'max:30',
-                'required_with:motor.renewPolicy.series'],
+            'motor.renewPolicy.series' => ['nullable', 'string', 'max:30', 'required_with:motor.renewPolicy.number'],
+            'motor.renewPolicy.number' => ['nullable', 'string', 'max:30', 'required_with:motor.renewPolicy.series'],
 
             // ---------- Asigurat ----------
-            'policyholder.lastName'     => ['required', 'string', 'max:60'],
-            'policyholder.firstName'    => ['required', 'string', 'max:60'],
-            'policyholder.taxId'        => ['required', new Cnp],
-            'policyholder.gender'       => ['required', $enum('gender')],
-            'policyholder.birthdate'    => ['required', 'date_format:Y-m-d', 'before:today'],
-            'policyholder.email'        => ['required', 'email', 'max:120'],
-            'policyholder.mobileNumber' => ['required', 'regex:/^07\d{8}$/'],
+            'policyholder.lastName'      => ['required', 'string', 'max:60'],
+            'policyholder.firstName'     => ['required', 'string', 'max:60'],
+            'policyholder.taxId'         => ['required', new Cnp],
+            'policyholder.gender'        => ['required', $enum('gender')],
+            'policyholder.birthdate'     => ['required', 'date_format:Y-m-d', 'before:today'],
+            'policyholder.email'         => ['required', 'email', 'max:120'],
+            'policyholder.mobileNumber'  => ['required', 'regex:/^07\d{8}$/'],
             'policyholder.hasDisability' => ['boolean'],
             'policyholder.isRetired'     => ['boolean'],
 
             'policyholder.identification.idType'         => ['required', $enum('id_type')],
             'policyholder.identification.idNumber'       => ['required', 'string', 'max:20'],
             'policyholder.identification.issueAuthority' => ['required', 'string', 'max:80'],
-            'policyholder.identification.issueDate'      => ['required', 'date_format:Y-m-d',
-                'before_or_equal:today'],
+            'policyholder.identification.issueDate'      => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
 
-            'policyholder.drivingLicense.issueDate' => ['required', 'date_format:Y-m-d',
-                'before_or_equal:today'],
+            'policyholder.drivingLicense.issueDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
 
-            'policyholder.address.county'      => ['required', 'string', 'size:2',
-                Rule::exists('counties', 'code')],
+            'policyholder.address.county'      => ['required', 'string', 'size:2', Rule::exists('counties', 'code')],
             'policyholder.address.city'        => ['required', 'string', 'max:100'],
             'policyholder.address.street'      => ['required', 'string', 'max:100'],
             // Obligatoriu la Axeria.
@@ -93,11 +90,10 @@ class StoreQuoteRequest extends FormRequest
             'policyholder.address.postcode'    => ['nullable', 'string', 'max:10'],
 
             // ---------- Vehicul ----------
-            'vehicle.licensePlate'       => ['required', 'string', 'max:15'],
-            'vehicle.registrationType'   => ['required', $enum('registration_type')],
+            'vehicle.licensePlate'     => ['required', 'string', 'max:15'],
+            'vehicle.registrationType' => ['required', $enum('registration_type')],
             // Standardul VIN exclude literele I, O si Q.
-            'vehicle.vin'                => ['required', 'string', 'min:5', 'max:17',
-                'regex:/^[A-HJ-NPR-Z0-9]+$/'],
+            'vehicle.vin'                => ['required', 'string', 'min:5', 'max:17', 'regex:/^[A-HJ-NPR-Z0-9]+$/'],
             'vehicle.vehicleType'        => ['required', $enum('vehicle_type')],
             'vehicle.brand'              => ['required', 'string', 'max:50'],
             'vehicle.model'              => ['required', 'string', 'max:50'],
@@ -107,26 +103,21 @@ class StoreQuoteRequest extends FormRequest
             'vehicle.totalWeight'        => ['required', 'integer', 'min:1', 'max:60000'],
             'vehicle.seats'              => ['required', 'integer', 'min:1', 'max:100'],
             'vehicle.fuelType'           => ['required', $enum('fuel_type')],
-            'vehicle.firstRegistration'  => ['nullable', 'date_format:Y-m-d',
-                'before_or_equal:today'],
+            'vehicle.firstRegistration'  => ['nullable', 'date_format:Y-m-d', 'before_or_equal:today'],
             'vehicle.usageType'          => ['required', $enum('usage_type')],
-            'vehicle.identification.idNumber' => ['required', 'string', 'max:20'],
-            'vehicle.currentMileage'     => ['required', 'integer', 'min:0', 'max:2000000'],
+            'vehicle.identification.idNumber'  => ['required', 'string', 'max:20'],
+            'vehicle.currentMileage'           => ['required', 'integer', 'min:0', 'max:2000000'],
             'vehicle.hasMobilityModifications' => ['boolean'],
             'vehicle.isLeased'                 => ['boolean'],
             'vehicle.isNew'                    => ['boolean'],
 
             // ---------- Sofer, daca difera de asigurat ----------
-            'options.driverIsPolicyholder'  => ['boolean'],
-            'driver.lastName'               => ['required_if:options.driverIsPolicyholder,false',
-                'nullable', 'string', 'max:60'],
-            'driver.firstName'              => ['required_if:options.driverIsPolicyholder,false',
-                'nullable', 'string', 'max:60'],
-            'driver.taxId'                  => ['required_if:options.driverIsPolicyholder,false',
-                'nullable', new Cnp],
-            'driver.identification.idNumber' => ['required_if:options.driverIsPolicyholder,false',
-                'nullable', 'string', 'max:20'],
-            'driver.mobileNumber'           => ['nullable', 'regex:/^07\d{8}$/'],
+            'options.driverIsPolicyholder'   => ['boolean'],
+            'driver.lastName'                => ['required_if:options.driverIsPolicyholder,false', 'nullable', 'string', 'max:60'],
+            'driver.firstName'               => ['required_if:options.driverIsPolicyholder,false', 'nullable', 'string', 'max:60'],
+            'driver.taxId'                   => ['required_if:options.driverIsPolicyholder,false', 'nullable', new Cnp],
+            'driver.identification.idNumber' => ['required_if:options.driverIsPolicyholder,false', 'nullable', 'string', 'max:20'],
+            'driver.mobileNumber'            => ['nullable', 'regex:/^07\d{8}$/'],
 
             // ---------- Cerute de anumiti asiguratori ----------
             'options.expirationDatePti' => ['required', 'date_format:Y-m-d'],
@@ -159,10 +150,7 @@ class StoreQuoteRequest extends FormRequest
         $exists = Locality::where('county_code', $county)->where('name', $city)->exists();
 
         if (! $exists) {
-            $validator->errors()->add(
-                'policyholder.address.city',
-                'Localitatea nu apartine judetului selectat.',
-            );
+            $validator->errors()->add('policyholder.address.city', 'Localitatea nu apartine judetului selectat.');
         }
     }
 
@@ -175,23 +163,15 @@ class StoreQuoteRequest extends FormRequest
             return; // Regula Cnp a raportat deja problema.
         }
 
-        if (Cnp::gender($cnp) !== null && Cnp::gender($cnp) !== $this->input('policyholder.gender'))
-        {
-            $validator->errors()->add('policyholder.gender', 'Sexul nu corespunde cu CNP-ul
-  introdus.');
+        if (Cnp::gender($cnp) !== null && Cnp::gender($cnp) !== $this->input('policyholder.gender')) {
+            $validator->errors()->add('policyholder.gender', 'Sexul nu corespunde cu CNP-ul introdus.');
         }
 
         if (Cnp::birthdate($cnp) !== $this->input('policyholder.birthdate')) {
-            $validator->errors()->add('policyholder.birthdate', 'Data nasterii nu corespunde cu
-  CNP-ul introdus.');
+            $validator->errors()->add('policyholder.birthdate', 'Data nasterii nu corespunde cu CNP-ul introdus.');
         }
     }
 
-    // Traduce numele tehnice ale câmpurilor în ceva citibil.
-    // Fără ea, Laravel afișează:
-    // The policyholder.identification.id number field is required.
-    // Cu ea:
-    // Câmpul seria și numărul actului este obligatoriu.
     /** Numele campurilor asa cum le vede utilizatorul in mesajele de eroare. */
     public function attributes(): array
     {
@@ -233,8 +213,7 @@ class StoreQuoteRequest extends FormRequest
             'vehicle.fuelType'                           => 'tipul de combustibil',
             'vehicle.firstRegistration'                  => 'data primei înmatriculări',
             'vehicle.usageType'                          => 'modul de utilizare',
-            'vehicle.identification.idNumber'            => 'seria cărții de identitate a
-  vehiculului',
+            'vehicle.identification.idNumber'            => 'seria cărții de identitate a vehiculului',
             'vehicle.currentMileage'                     => 'kilometrajul',
             'options.expirationDatePti'                  => 'data expirării ITP',
             'options.bonusMalusClass'                    => 'clasa bonus-malus',
@@ -248,12 +227,9 @@ class StoreQuoteRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'policyholder.mobileNumber.regex' => 'Numărul de telefon trebuie să fie de forma
-  07XXXXXXXX.',
-            'driver.mobileNumber.regex'       => 'Numărul de telefon al șoferului trebuie să fie de
-  forma 07XXXXXXXX.',
-            'vehicle.vin.regex'               => 'Seria de șasiu poate conține doar cifre și litere,
-  fără I, O sau Q.',
+            'policyholder.mobileNumber.regex' => 'Numărul de telefon trebuie să fie de forma 07XXXXXXXX.',
+            'driver.mobileNumber.regex'       => 'Numărul de telefon al șoferului trebuie să fie de forma 07XXXXXXXX.',
+            'vehicle.vin.regex'               => 'Seria de șasiu poate conține doar cifre și litere, fără I, O sau Q.',
         ];
     }
 }
