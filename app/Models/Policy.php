@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
+    'uuid',
     'offer_id',
     'user_id',
     'provider',
@@ -26,6 +27,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Policy extends Model
 {
     use HasProviderLabel;
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $policy) {
+            $policy->uuid ??= (string) Str::uuid();
+        });
+    }
 
     protected function casts(): array
     {
