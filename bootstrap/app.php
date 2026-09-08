@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Unde ajunge un vizitator care cere o pagina protejata,
+        // si unde ajunge un utilizator logat care cere pagina de login.
+        $middleware->redirectGuestsTo('/autentificare');
+        $middleware->redirectUsersTo('/oferta');
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
