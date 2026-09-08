@@ -4,13 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreQuoteRequest;
 use App\Models\County;
+use App\Models\Offer;
 use App\Models\Locality;
 use App\Models\QuoteRequest;
 use App\Services\Rca\OfferService;
+use App\Services\Rca\PdfService;
+use App\Services\Rca\RcaException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class QuoteController extends Controller
 {
@@ -23,6 +28,10 @@ class QuoteController extends Controller
 
             return redirect()->route('oferta.create');
         }
+
+        // Datele contului devin valori implicite in formular; old() are prioritate.
+
+        view()->share('prefill', $request->user()?->profile?->toPrefill() ?? []);
 
         return view('oferta.form', [
             'counties' => County::orderBy('name')->get(),
@@ -133,5 +142,20 @@ class QuoteController extends Controller
                 'bonusMalusClass'      => 'B0',
             ],
         ];
+    }
+
+    /** Descarca PDF-ul unei oferte. */
+    public function offerPdf(QuoteRequest $quoteRequest, Offer $offer, PdfService $pdfs): StreamedResponse|RedirectResponse
+    {
+        // Oferta trebuie sa apartina cererii din URL.
+        abort_unless($offer->providerQuote->quote_request_id === $quoteRequest->id, 404);
+
+        try {
+            $path = $pdfs->forOffer($offer);
+        } catch (RcaException $e) {
+            return back()->with('eroare', 'PDF-ul nu a putut fi descarcat: '.$e->getMessage());
+        }
+
+        return Storage::download($path, 'oferta-'.$offer->provider.'-'.$offer->api_offer_id.'.pdf');
     }
 }
