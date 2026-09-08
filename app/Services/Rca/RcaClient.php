@@ -22,9 +22,9 @@ class RcaClient
     }
 
     /** @return array Continutul lui 'data' din raspuns. */
-    public function get(string $path, array $query = [], ?int $quoteRequestId = null): array
+    public function get(string $path, array $query = [], ?int $quoteRequestId = null, ?string $provider = null): array
     {
-        return $this->call('GET', $path, query: $query, quoteRequestId: $quoteRequestId);
+        return $this->call('GET', $path, query: $query, provider: $provider, quoteRequestId: $quoteRequestId);
     }
 
     /** @return array Continutul lui 'data' din raspuns. */
