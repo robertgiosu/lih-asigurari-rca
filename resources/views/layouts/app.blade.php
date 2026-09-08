@@ -20,6 +20,7 @@
 
             @auth
                 <span class="text-slate-300">|</span>
+                <a href="{{ route('istoric.index') }}" class="text-slate-600 hover:text-sky-600">Istoric</a>
                 <a href="{{ route('profil.edit') }}" class="text-slate-600 hover:text-sky-600">Profilul meu</a>
                 <span class="text-slate-500">{{ auth()->user()->name }}</span>
 

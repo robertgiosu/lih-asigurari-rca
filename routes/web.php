@@ -6,6 +6,7 @@ use App\Http\Controllers\PolicyController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\QuoteController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\HistoryController;
 
 Route::redirect('/', '/oferta');
 
@@ -40,4 +41,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/profil', [ProfileController::class, 'edit'])->name('profil.edit');
     Route::put('/profil', [ProfileController::class, 'update'])->name('profil.update');
+    Route::get('/istoric', [HistoryController::class,
+        'index'])->name('istoric.index');
+    Route::get('/istoric/{quoteRequest}', [HistoryController::class,
+        'show'])->name('istoric.show');
 });
